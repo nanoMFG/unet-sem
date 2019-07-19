@@ -1,6 +1,10 @@
 from model import *
 from utils import *
-
+import tensorflow as tf
+from keras.optimizers import *
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler
+from keras.preprocessing.image import ImageDataGenerator
+import keras.backend as K
 
 def slice_batch(x, n_gpus, part):
     sh = K.shape(x)
@@ -67,13 +71,14 @@ for epoch in range(num_epochs):
     test_loss = []
     for i, img_mask_path in enumerate(test_paths):
         img, mask = read_data(img_mask_path)
-        out_imgs = np.zeros((batch_size,random_crop_size[0],random_crop_size[1],1))
-        out_masks = np.zeros((batch_size,random_crop_size[0],random_crop_size[1],1))
-        for b in range(batch_size):
-            seed = np.random.randint(1e9)
-            crop_img, crop_mask = random_crop(img,mask,random_crop_size)
-        out_imgs[b,...] = image_datagen.random_transform(crop_img,seed=seed)
-        out_masks[b,...] = image_datagen.random_transform(crop_mask,seed=seed)
+        out_imgs,out_masks = augment_input(img,mask,aug_dict=data_gen_args,batch_size=batch_size,random_crop_size=(256,256))
+        #out_imgs = np.zeros((batch_size,random_crop_size[0],random_crop_size[1],1))
+        #out_masks = np.zeros((batch_size,random_crop_size[0],random_crop_size[1],1))
+        #for b in range(batch_size):
+        #    seed = np.random.randint(1e9)
+        #    crop_img, crop_mask = random_crop(img,mask,random_crop_size)
+        #out_imgs[b,...] = image_datagen.random_transform(crop_img,seed=seed)
+        #out_masks[b,...] = image_datagen.random_transform(crop_mask,seed=seed)
 
         test_loss.append(model.test_on_batch(out_imgs,out_masks))
     test_loss = np.mean(np.array(test_loss),axis=0)
