@@ -62,8 +62,8 @@ def generate_batch(img, mask, batch_size=32, random_crop_size=(256,256), output_
 
         out_img = out_img / 255
         out_mask = out_mask / 255
-        out_mask[mask > 0.5] = 1
-        out_mask[mask <= 0.5] = 0
+        out_mask[out_mask > 0.5] = 1
+        out_mask[out_mask <= 0.5] = 0
 
         out_imgs[b,...] = out_img
         out_masks[b,...] = out_mask
