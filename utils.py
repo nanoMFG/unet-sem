@@ -48,7 +48,7 @@ def generate_batch(img, mask, batch_size=32, random_crop_size=(256,256), output_
             out_img, out_mask = random_crop(out_img,out_mask,random_crop_size)
 
         out_img = Image.fromarray(out_img[...,0])
-        out_image = out_img.resize(output_size)
+        out_img = out_img.resize(output_size)
         out_mask = Image.fromarray(out_mask[...,0])
         out_mask = out_mask.resize(output_size)
 
