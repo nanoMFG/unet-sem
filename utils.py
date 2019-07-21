@@ -24,19 +24,9 @@ def random_crop(img, mask, random_crop_size=(256,256), max_crop=False):
     y = np.random.randint(0, height - dy + 1)
     return img[y:(y+dy), x:(x+dx), :], mask[y:(y+dy), x:(x+dx), :]
 
-def random_augment(img, mask, output_size, aug_dict):
+def random_augment(img, mask, aug_dict):
     image_datagen = ImageDataGenerator(**aug_dict)
     seed = np.random.randint(1e9)
-
-    if img.shape != output_size:
-        print('shape: ', img.shape, 'output_size: ',output_size)
-        out_img = Image.fromarray(img[...,0])
-        out_img.resize(output_size)
-        out_mask = Image.fromarray(mask[...,0])
-        out_mask.resize(output_size)
-
-        out_img = np.array(out_img)[...,np.newaxis]
-        out_mask = np.array(out_mask)[...,np.newaxis]
 
     out_img = image_datagen.random_transform(img,seed=seed)
     out_mask = image_datagen.random_transform(mask,seed=seed)
@@ -50,10 +40,22 @@ def generate_batch(img, mask, batch_size=32, random_crop_size=(256,256), output_
     out_masks = np.zeros((batch_size,random_crop_size[0],random_crop_size[1],1))
     for b in range(batch_size):
         seed = np.random.randint(1e9)
+
         if crop:
             out_img, out_mask = random_crop(img,mask,random_crop_size)
+
+        if out_img.shape != output_size:
+            # print('shape: ', img.shape, 'output_size: ',output_size)
+            out_img = Image.fromarray(out_img[...,0])
+            out_img.resize(output_size)
+            out_mask = Image.fromarray(out_mask[...,0])
+            out_mask.resize(output_size)
+
+            out_img = np.array(out_img)[...,np.newaxis]
+            out_mask = np.array(out_mask)[...,np.newaxis]
+
         if augment:
-            out_img, out_mask = random_augment(img,mask,output_size,aug_dict)
+            out_img, out_mask = random_augment(img,mask,aug_dict)
 
         out_img = out_img / 255
         out_mask = out_mask / 255
