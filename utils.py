@@ -41,8 +41,11 @@ def generate_batch(img, mask, batch_size=32, random_crop_size=(256,256), output_
     for b in range(batch_size):
         seed = np.random.randint(1e9)
 
+        out_img = img.copy()
+        out_mask = mask.copy()
+
         if crop:
-            out_img, out_mask = random_crop(img,mask,random_crop_size)
+            out_img, out_mask = random_crop(out_img,out_mask,random_crop_size)
 
         if out_img.shape != output_size:
             # print('shape: ', img.shape, 'output_size: ',output_size)
