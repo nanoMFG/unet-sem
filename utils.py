@@ -36,8 +36,8 @@ def random_augment(img, mask, aug_dict):
 def generate_batch(img, mask, batch_size=32, random_crop_size=(256,256), output_size=(256,256), crop = True, augment = True, aug_dict = {}, max_crop = False):
     LX,LY,LZ = img.shape
 
-    out_imgs = np.zeros((batch_size,random_crop_size[0],random_crop_size[1],1))
-    out_masks = np.zeros((batch_size,random_crop_size[0],random_crop_size[1],1))
+    out_imgs = np.zeros((batch_size,)+output_size+(1,))
+    out_masks = np.zeros((batch_size,)+output_size+(1,))
     for b in range(batch_size):
         seed = np.random.randint(1e9)
 
