@@ -16,7 +16,7 @@ parser.add_argument('--augment', action = 'store_true', default = True, help='Co
 parser.add_argument('--max_crop', action = 'store_true', default = False, help='Crops using the maximum square size for each image. Crop size is ignored.')
 parser.add_argument('--crop_size', default = 256, type = int, help='Size of cropped sample.')
 parser.add_argument('--input_size', default = 256, type = int, help='Model input size. Cropped images will be rescaled to this size.')
-parser.add_argument('--ngpu', type = int, help='Number of GPUs.')
+parser.add_argument('--ngpu', default=1,type = int, help='Number of GPUs.')
 parser.add_argument('--nepochs', default = 5, type = int, help='Number of epochs.')
 parser.add_argument('--batch_size', default = 32, type = int, help='Number of samples per batch.')
 parser.add_argument('--split', default = 0.1, type = float, help='Fraction of data to use for validation.')
