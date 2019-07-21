@@ -121,14 +121,16 @@ class TrainUNET:
                 out_imgs,out_masks = generate_batch(
                     img,
                     mask,
-                    batch_size=self.batch_size,
+                    batch_size=1,
                     random_crop_size=self.crop_size,
                     output_size=self.input_size,
-                    crop = self.crop,
+                    crop = False,
                     augment = False,
                     aug_dict=self.data_gen_args,
                     max_crop = self.max_crop)
 
+                prediction = self.model.predict_on_batch(out_imgs,out_masks)
+                save_output(img,mask,prediction[0,...],index=i,epoch=epoch)
                 test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
             test_loss = np.mean(np.array(test_loss),axis=0)
             print("epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))

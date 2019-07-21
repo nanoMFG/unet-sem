@@ -1,8 +1,19 @@
 import numpy as np
 import cv2
+import os
 from PIL import Image
 from random import shuffle
 from keras.preprocessing.image import ImageDataGenerator
+
+def save_output(img,mask,output,epoch,index,directory='output'):
+    os.makedirs(os.path.join(directory,'%d_epoch'%epoch), exist_ok=True)
+
+    print_img = Image.fromarray(img[...,0])
+    print_img.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.bmp'%index))
+    print_mask = Image.fromarray(mask[...,0])
+    print_mask.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.bmp'%index))
+    print_output = Image.fromarray(img[...,0])
+    print_output.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.bmp'%index))
 
 def read_data(img_mask_path):
     img_path = img_mask_path[0]
