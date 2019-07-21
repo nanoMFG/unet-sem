@@ -1,10 +1,17 @@
 
+from utils import *
 from keras.models import *
 from keras.layers import *
 #from keras.optimizers import *
 #from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 #from keras.preprocessing.image import ImageDataGenerator
 #import keras.backend as K
+import tensorflow as tf
+from keras.optimizers import *
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler
+from keras.preprocessing.image import ImageDataGenerator
+import keras.backend as K
+from keras.utils import multi_gpu_model
 
 def unet(pretrained_weights = None,input_size = (256,256,1)):
     inputs = Input(input_size)
@@ -56,3 +63,71 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
         model.load_weights(pretrained_weights)
 
     return model
+
+
+class TrainUNET:
+    def __init__(self,crop=True,augment=True,nepochs=5,batch_size=32,split=0.1,max_crop=False,crop_size=(256,256),input_size=(256,256),ngpu=1,lr=1e-4):
+        self.data_gen_args = dict(rotation_range=0.2,
+                    width_shift_range=0.05,
+                    height_shift_range=0.05,
+                    shear_range=0.05,
+                    zoom_range=0.05,
+                    horizontal_flip=True,
+                    fill_mode='nearest')
+        self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
+        num_images = len(self.image_mask_paths)
+        self.test_paths = self.image_mask_paths[:int(split*num_images)]
+        self.train_paths = self.image_mask_paths[int(split*num_images):]
+
+        self.crop = crop
+        self.augment = augment
+        self.nepochs = nepochs
+        self.batch_size = batch_size
+        self.split = split
+        self.max_crop = max_crop
+        self.crop_size = crop_size
+        self.input_size = input_size
+        self.ngpu = ngpu
+        self.lr = lr
+
+        self.model = unet(input_size=self.input_size+(1,))
+        if self.ngpu > 1:
+            self.model = multi_gpu_model(self.model,gpus=self.ngpu)
+        self.model.compile(optimizer = Adam(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
+
+    def train(self):    
+        for epoch in range(self.nepochs):
+            shuffle(self.train_paths)
+            for i, img_mask_path in enumerate(self.train_paths):
+                img, mask = read_data(img_mask_path)
+                aug_imgs, aug_masks = generate_batch(
+                    img,
+                    mask,
+                    batch_size=self.batch_size,
+                    random_crop_size=self.crop_size,
+                    output_size=self.input_size,
+                    crop = self.crop,
+                    augment = self.augment,
+                    aug_dict=self.data_gen_args,
+                    max_crop = self.max_crop)
+                loss = self.model.train_on_batch(aug_imgs,aug_masks)
+                print("epoch: %d (%d/%d), %s: %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss))
+
+            test_loss = []
+            for i, img_mask_path in enumerate(self.test_paths):
+                img, mask = read_data(img_mask_path)
+                out_imgs,out_masks = generate_batch(
+                    img,
+                    mask,
+                    batch_size=self.batch_size,
+                    random_crop_size=self.crop_size,
+                    output_size=self.input_size,
+                    crop = self.crop,
+                    augment = False,
+                    aug_dict=self.data_gen_args,
+                    max_crop = self.max_crop)
+
+                test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
+            test_loss = np.mean(np.array(test_loss),axis=0)
+            print("epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
+

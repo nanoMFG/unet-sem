@@ -29,13 +29,14 @@ def random_augment(img, mask, output_size, aug_dict):
     seed = np.random.randint(1e9)
 
     if img.shape != output_size:
+        print('shape: ', img.shape, 'output_size: ',output_size)
         out_img = Image.fromarray(img[...,0])
         out_img.resize(output_size)
         out_mask = Image.fromarray(mask[...,0])
         out_mask.resize(output_size)
 
-        out_img = np,array(out_img)[...,np.newaxis]
-        out_mask = np,array(out_mask)[...,np.newaxis]
+        out_img = np.array(out_img)[...,np.newaxis]
+        out_mask = np.array(out_mask)[...,np.newaxis]
 
     out_img = image_datagen.random_transform(img,seed=seed)
     out_mask = image_datagen.random_transform(mask,seed=seed)
