@@ -129,7 +129,7 @@ class TrainUNET:
                     aug_dict=self.data_gen_args,
                     max_crop = self.max_crop)
 
-                prediction = self.model.predict_on_batch(out_imgs,out_masks)
+                prediction = self.model.predict_on_batch(out_imgs)
                 save_output(img,mask,prediction[0,...],index=i,epoch=epoch)
                 test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
             test_loss = np.mean(np.array(test_loss),axis=0)
