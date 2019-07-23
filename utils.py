@@ -66,19 +66,19 @@ def generate_batch(img, mask, batch_size=32, random_crop_size=(256,256), output_
         out_img = np.array(out_img)[...,np.newaxis]
         out_mask = np.array(out_mask)[...,np.newaxis]
 
-        print('after resize',out_img.shape,out_mask.shape)
+        #print('after resize',out_img.shape,out_mask.shape)
 
         if augment:
             out_img, out_mask = random_augment(out_img,out_mask,aug_dict)
 
-        print('after augment',out_img.shape,out_mask.shape)
+        #print('after augment',out_img.shape,out_mask.shape)
 
         out_img = out_img / 255
         out_mask = out_mask / 255
         out_mask[out_mask > 0.5] = 1
         out_mask[out_mask <= 0.5] = 0
 
-        print('after scales',out_img.shape,out_mask.shape)
+        #print('after scales',out_img.shape,out_mask.shape)
 
         out_imgs[b,...] = out_img
         out_masks[b,...] = out_mask
