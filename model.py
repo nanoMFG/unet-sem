@@ -130,7 +130,7 @@ class TrainUNET:
                     max_crop = self.max_crop)
 
                 prediction = self.model.predict_on_batch(out_imgs)
-                save_output(img,mask,prediction[0,...],index=i,epoch=epoch)
+                save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
                 test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
             test_loss = np.mean(np.array(test_loss),axis=0)
             print("epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
