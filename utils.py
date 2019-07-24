@@ -11,9 +11,9 @@ def save_output(img,mask,output,epoch,index,directory='output'):
     print_img = Image.fromarray(img[...,0])
     print_img.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.bmp'%index))
     print_mask = Image.fromarray(mask[...,0])
-    print_mask.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.bmp'%index))
+    print_mask.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_mask.bmp'%index))
     print_output = Image.fromarray(img[...,0])
-    print_output.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.bmp'%index))
+    print_output.save(os.path.join(directory,'%d_epoch'%epoch,'%d_output_mask.bmp'%index))
 
 def read_data(img_mask_path):
     img_path = img_mask_path[0]
