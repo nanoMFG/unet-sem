@@ -8,11 +8,11 @@ from keras.preprocessing.image import ImageDataGenerator
 def save_output(img,mask,output,epoch,index,directory='output'):
     os.makedirs(os.path.join(directory,'%d_epoch'%epoch), exist_ok=True)
 
-    print_img = Image.fromarray(img[...,0])
+    print_img = Image.fromarray(img[...,0]).convert(mode='I')
     print_img.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.png'%index))
-    print_mask = Image.fromarray(mask[...,0])
+    print_mask = Image.fromarray(mask[...,0]).convert(mode='I')
     print_mask.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_mask.png'%index))
-    print_output = Image.fromarray(img[...,0])
+    print_output = Image.fromarray(img[...,0]).convert(mode='I')
     print_output.save(os.path.join(directory,'%d_epoch'%epoch,'%d_output_mask.png'%index))
 
 def read_data(img_mask_path):
