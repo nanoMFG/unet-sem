@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+import json
 from PIL import Image
 from random import shuffle
 from keras.preprocessing.image import ImageDataGenerator
@@ -8,12 +9,12 @@ from keras.preprocessing.image import ImageDataGenerator
 def save_output(img,mask,output,epoch,index,directory='output'):
     os.makedirs(os.path.join(directory,'%d_epoch'%epoch), exist_ok=True)
 
-    print_img = Image.fromarray(img[...,0]*255).convert(mode='I')
-    print_img.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.png'%index))
-    print_mask = Image.fromarray(mask[...,0]*255).convert(mode='I')
-    print_mask.save(os.path.join(directory,'%d_epoch'%epoch,'%d_input_mask.png'%index))
-    print_output = Image.fromarray(img[...,0]*255).convert(mode='I')
-    print_output.save(os.path.join(directory,'%d_epoch'%epoch,'%d_output_mask.png'%index))
+    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.png'%index),'w') as f:
+        json.dump(img[...,0].tolist(),f)
+    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_input_mask.png'%index),'w') as f:
+        json.dump(mask[...,0].tolist(),f)
+    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_output_mask.png'%index),'w') as f:
+        json.dump(output[...,0].tolist(),f)
 
 def read_data(img_mask_path):
     img_path = img_mask_path[0]
