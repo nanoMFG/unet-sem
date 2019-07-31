@@ -9,11 +9,11 @@ from keras.preprocessing.image import ImageDataGenerator
 def save_output(img,mask,output,epoch,index,directory='output'):
     os.makedirs(os.path.join(directory,'%d_epoch'%epoch), exist_ok=True)
 
-    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.png'%index),'w') as f:
+    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_input_image.json'%index),'w') as f:
         json.dump(img[...,0].tolist(),f)
-    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_input_mask.png'%index),'w') as f:
+    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_input_mask.json'%index),'w') as f:
         json.dump(mask[...,0].tolist(),f)
-    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_output_mask.png'%index),'w') as f:
+    with open(os.path.join(directory,'%d_epoch'%epoch,'%d_output_mask.json'%index),'w') as f:
         json.dump(output[...,0].tolist(),f)
 
 def read_data(img_mask_path):
