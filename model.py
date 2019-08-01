@@ -96,6 +96,7 @@ class TrainUNET:
         if self.ngpu > 1:
             self.model = multi_gpu_model(self.model,gpus=self.ngpu)
         self.model.compile(optimizer = Adam(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
+        plot_model(self.model, to_file='model.png')
 
     def train(self):    
         for epoch in range(self.nepochs):
