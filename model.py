@@ -12,6 +12,7 @@ from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras.preprocessing.image import ImageDataGenerator
 import keras.backend as K
 from keras.utils import multi_gpu_model
+from keras.utils import plot_model
 
 K.set_floatx('float32')
 
@@ -96,7 +97,7 @@ class TrainUNET:
         if self.ngpu > 1:
             self.model = multi_gpu_model(self.model,gpus=self.ngpu)
         self.model.compile(optimizer = Adam(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
-        plot_model(self.model, to_file='model.png')
+        plot_model(self.model, to_file='model.png',show_shapes=True)
 
     def train(self):    
         for epoch in range(self.nepochs):
