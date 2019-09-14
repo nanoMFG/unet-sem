@@ -69,7 +69,7 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
 
 
 class TrainUNET:
-    def __init__(self,crop=True,augment=True,nepochs=5,batch_size=32,split=0.1,max_crop=False,crop_size=(256,256),input_size=(256,256),ngpu=1,lr=1e-4):
+    def __init__(self,crop=True,augment=True,nepochs=5,batch_size=32,split=0.1,max_crop=False,crop_size=(256,256),input_size=(256,256),ngpu=1,lr=1e-4,shuffle_data=False):
         self.data_gen_args = dict(rotation_range=0.2,
                     width_shift_range=0.05,
                     height_shift_range=0.05,
@@ -77,10 +77,6 @@ class TrainUNET:
                     zoom_range=0.05,
                     horizontal_flip=True,
                     fill_mode='nearest')
-        self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
-        num_images = len(self.image_mask_paths)
-        self.test_paths = self.image_mask_paths[:int(split*num_images)]
-        self.train_paths = self.image_mask_paths[int(split*num_images):]
 
         self.crop = crop
         self.augment = augment
@@ -92,6 +88,22 @@ class TrainUNET:
         self.input_size = input_size
         self.ngpu = ngpu
         self.lr = lr
+        self.shuffle_data = shuffle_data
+
+        self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
+        if self.shuffle_data:
+            shuffle(self.image_mask_paths)
+        num_images = len(self.image_mask_paths)
+        self.test_paths = self.image_mask_paths[:int(self.split*num_images)]
+        self.train_paths = self.image_mask_paths[int(self.split*num_images):]
+
+        print('[TRAIN PATHS]:')
+        for path in self.train_paths:
+            print(path)
+
+        print('[TEST PATHS]:')
+        for path in self.test_paths:
+            print(path)
 
         self.model = unet(input_size=self.input_size+(1,))
         if self.ngpu > 1:
