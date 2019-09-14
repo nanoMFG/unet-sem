@@ -77,7 +77,7 @@ class TrainUNET:
                     zoom_range=0.05,
                     horizontal_flip=True,
                     vertical_flip=True,
-                    brightness_range=[0.5,1.5]
+                    brightness_range=[0.5,1.5],
                     fill_mode='nearest')
 
         self.crop = crop
