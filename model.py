@@ -13,6 +13,7 @@ from keras.preprocessing.image import ImageDataGenerator
 import keras.backend as K
 from keras.utils import multi_gpu_model
 from keras.utils import plot_model
+import time
 
 K.set_floatx('float32')
 
@@ -69,7 +70,19 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
 
 
 class TrainUNET:
-    def __init__(self,crop=True,augment=True,nepochs=5,batch_size=32,split=0.1,max_crop=False,crop_size=(256,256),input_size=(256,256),ngpu=1,lr=1e-4,shuffle_data=False,augment_after=0):
+    def __init__(self,crop=True,
+                    augment=True,
+                    nepochs=5,
+                    batch_size=32,
+                    split=0.1,
+                    max_crop=False,
+                    crop_size=(256,256),
+                    input_size=(256,256),
+                    ngpu=1,lr=1e-4,
+                    shuffle_data=False,
+                    augment_after=0,
+                    output_dir=None):
+        
         self.data_gen_args = dict(rotation_range=0.2,
                     width_shift_range=0.05,
                     height_shift_range=0.05,
@@ -100,14 +113,6 @@ class TrainUNET:
         self.test_paths = self.image_mask_paths[:int(self.split*num_images)]
         self.train_paths = self.image_mask_paths[int(self.split*num_images):]
 
-        print('[TRAIN PATHS]:')
-        for path in self.train_paths:
-            print(path)
-
-        print('[TEST PATHS]:')
-        for path in self.test_paths:
-            print(path)
-
         self.model = unet(input_size=self.input_size+(1,))
         if self.ngpu > 1:
             self.model = multi_gpu_model(self.model,gpus=self.ngpu)
@@ -115,7 +120,13 @@ class TrainUNET:
         optimizer = RMSprop
         # optimizer = Adam
         self.model.compile(optimizer = optimizer(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
-        plot_model(self.model, to_file='model.png',show_shapes=True)
+        # plot_model(self.model, to_file='model.png',show_shapes=True)
+
+        with open('parameters.txt','w') as f:
+            d = vars(self)
+            for key, value in d.items():
+                f.write("%s: %s\n"%(key,value))
+
 
     def train(self):    
         for epoch in range(self.nepochs):
