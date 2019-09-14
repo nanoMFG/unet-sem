@@ -78,7 +78,8 @@ class TrainUNET:
                     max_crop=False,
                     crop_size=(256,256),
                     input_size=(256,256),
-                    ngpu=1,lr=1e-4,
+                    ngpu=1,
+                    lr=1e-4,
                     shuffle_data=False,
                     augment_after=0,
                     output_dir=None):
@@ -176,7 +177,7 @@ class TrainUNET:
                     max_crop = self.max_crop)
 
                 prediction = self.model.predict_on_batch(out_imgs)
-                if epoch % 5 == 0 or epoch == self.nepochs-1:
+                if epoch % 5 == 0 or epoch == self.nepochs-1 or test_loss[1]>best_acc:
                     save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
                 test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
             test_loss = np.mean(np.array(test_loss),axis=0)

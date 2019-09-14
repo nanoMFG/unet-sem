@@ -38,6 +38,8 @@ def random_crop(img, mask, random_crop_size=(256,256), max_crop=False):
         dx = dy = min(height,width)
     else:
         dy, dx = random_crop_size
+        dy = min(dy,height)
+        dx = min(dx,width)
     x = np.random.randint(0, width - dx + 1)
     y = np.random.randint(0, height - dy + 1)
     return img[y:(y+dy), x:(x+dx), :], mask[y:(y+dy), x:(x+dx), :]
