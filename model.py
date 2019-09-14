@@ -115,7 +115,7 @@ class TrainUNET:
                     aug_dict=self.data_gen_args,
                     max_crop = self.max_crop)
                 loss = self.model.train_on_batch(aug_imgs,aug_masks)
-                print("epoch: %d (%d/%d), %s: %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss))
+                print("[TRAIN] epoch: %d (%d/%d), %s: %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss))
 
             test_loss = []
             for i, img_mask_path in enumerate(self.test_paths):
@@ -135,5 +135,5 @@ class TrainUNET:
                 save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
                 test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
             test_loss = np.mean(np.array(test_loss),axis=0)
-            print("epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
+            print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
 
