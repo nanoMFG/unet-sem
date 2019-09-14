@@ -12,6 +12,7 @@ import sys
 #if __name__ == '__main__':
 parser = argparse.ArgumentParser()
 parser.add_argument('--crop', action = 'store_true', default = False, help='Constructs batch using random crops.')
+parser.add_argument('--shuffle_data', action = 'store_true', default = False, help='Shuffles data paths to switch what is in test/train.')
 parser.add_argument('--augment', action = 'store_true', default = False, help='Constructs batch using augmentations.')
 parser.add_argument('--max_crop', action = 'store_true', default = False, help='Crops using the maximum square size for each image. Crop size is ignored.')
 parser.add_argument('--crop_size', default = 256, type = int, help='Size of cropped sample.')
