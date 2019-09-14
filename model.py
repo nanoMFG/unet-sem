@@ -136,7 +136,8 @@ class TrainUNET:
                     f.write("%s: %s\n"%(key,value))
 
 
-    def train(self):    
+    def train(self):
+        best_acc = 0    
         for epoch in range(self.nepochs):
             shuffle(self.train_paths)
             for i, img_mask_path in enumerate(self.train_paths):
@@ -179,5 +180,7 @@ class TrainUNET:
                     save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
                 test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
             test_loss = np.mean(np.array(test_loss),axis=0)
+            if test_loss[1]>best_acc:
+                save_model(self.model,epoch,test_loss[1])
             print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
 
