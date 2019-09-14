@@ -69,7 +69,7 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
 
 
 class TrainUNET:
-    def __init__(self,crop=True,augment=True,nepochs=5,batch_size=32,split=0.1,max_crop=False,crop_size=(256,256),input_size=(256,256),ngpu=1,lr=1e-4,shuffle_data=False):
+    def __init__(self,crop=True,augment=True,nepochs=5,batch_size=32,split=0.1,max_crop=False,crop_size=(256,256),input_size=(256,256),ngpu=1,lr=1e-4,shuffle_data=False,augment_after=0):
         self.data_gen_args = dict(rotation_range=0.2,
                     width_shift_range=0.05,
                     height_shift_range=0.05,
@@ -89,6 +89,7 @@ class TrainUNET:
         self.ngpu = ngpu
         self.lr = lr
         self.shuffle_data = shuffle_data
+        self.augment_after = augment_after
 
         self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
         if self.shuffle_data:
@@ -116,6 +117,12 @@ class TrainUNET:
             shuffle(self.train_paths)
             for i, img_mask_path in enumerate(self.train_paths):
                 img, mask = read_data(img_mask_path)
+
+                if epoch >= self.augment_after:
+                    augment = self.augment
+                else:
+                    augment = False
+                    
                 aug_imgs, aug_masks = generate_batch(
                     img,
                     mask,
@@ -123,7 +130,7 @@ class TrainUNET:
                     random_crop_size=self.crop_size,
                     output_size=self.input_size,
                     crop = self.crop,
-                    augment = self.augment,
+                    augment = augment,
                     aug_dict=self.data_gen_args,
                     max_crop = self.max_crop)
                 loss = self.model.train_on_batch(aug_imgs,aug_masks)
