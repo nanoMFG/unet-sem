@@ -90,7 +90,7 @@ class TrainUNET:
                     zoom_range=0.05,
                     horizontal_flip=True,
                     vertical_flip=True,
-                    brightness_range=[0.5,1.5],
+                    brightness_range=[0.2,1.8],
                     fill_mode='nearest')
 
         self.crop = crop
@@ -167,7 +167,8 @@ class TrainUNET:
                     max_crop = self.max_crop)
 
                 prediction = self.model.predict_on_batch(out_imgs)
-                save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
+                if epoch % 5 == 0 or epoch == self.nepochs-1:
+                    save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
                 test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
             test_loss = np.mean(np.array(test_loss),axis=0)
             print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
