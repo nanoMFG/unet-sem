@@ -31,4 +31,4 @@ print(kwargs)
 
 
 run = TrainUNET(**kwargs)
-# run.train()
+run.train()
