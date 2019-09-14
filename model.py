@@ -124,8 +124,16 @@ class TrainUNET:
 
         with open('parameters.txt','w') as f:
             d = vars(self)
+            f.write('[TEST PATHS]\n')
+            for path in self.test_paths:
+                f.write('%s\n'%path)
+            f.write('[TRAIN PATHS]\n')
+            for path in self.train_paths:
+                f.write('%s\n'%path)
+            f.write('Optimizer: %s\n'%optimizer.__name__)
             for key, value in d.items():
-                f.write("%s: %s\n"%(key,value))
+                if key not in ['test_paths','train_paths']:
+                    f.write("%s: %s\n"%(key,value))
 
 
     def train(self):    
