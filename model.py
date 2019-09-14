@@ -73,9 +73,11 @@ class TrainUNET:
         self.data_gen_args = dict(rotation_range=0.2,
                     width_shift_range=0.05,
                     height_shift_range=0.05,
-                    shear_range=0.05,
+                    # shear_range=0.05,
                     zoom_range=0.05,
                     horizontal_flip=True,
+                    vertical_flip=True,
+                    brightness_range=[0.5,1.5]
                     fill_mode='nearest')
 
         self.crop = crop
@@ -109,7 +111,10 @@ class TrainUNET:
         self.model = unet(input_size=self.input_size+(1,))
         if self.ngpu > 1:
             self.model = multi_gpu_model(self.model,gpus=self.ngpu)
-        self.model.compile(optimizer = Adam(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
+
+        optimizer = RMSprop
+        # optimizer = Adam
+        self.model.compile(optimizer = optimizer(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
         plot_model(self.model, to_file='model.png',show_shapes=True)
 
     def train(self):    
@@ -122,7 +127,7 @@ class TrainUNET:
                     augment = self.augment
                 else:
                     augment = False
-                    
+
                 aug_imgs, aug_masks = generate_batch(
                     img,
                     mask,
