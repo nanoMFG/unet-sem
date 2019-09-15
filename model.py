@@ -184,6 +184,6 @@ class TrainUNET:
                 test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
             test_loss = np.mean(np.array(test_loss),axis=0)
             if test_loss[1]>best_acc:
-                save_model(self.model,epoch,test_loss[1])
+                save_model_unet(self.model,epoch,test_loss[1])
             print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
 
