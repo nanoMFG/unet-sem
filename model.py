@@ -127,14 +127,16 @@ class TrainUNET:
             d = vars(self)
             f.write('[TEST PATHS]\n')
             for path in self.test_paths:
-                f.write('%s\n'%path)
+                s = '%s %s'%(path[0],path[1])
+                f.write('%s \n'%s)
             f.write('[TRAIN PATHS]\n')
             for path in self.train_paths:
-                f.write('%s\n'%path)
-            f.write('Optimizer: %s\n'%optimizer.__name__)
+                s = '%s %s'%(path[0],path[1])
+                f.write('%s \n'%s)
+            f.write('Optimizer: %s \n'%optimizer.__name__)
             for key, value in d.items():
                 if key not in ['test_paths','train_paths']:
-                    f.write("%s: %s\n"%(key,value))
+                    f.write("%s: %s \n"%(key,value))
 
 
     def train(self):
