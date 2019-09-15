@@ -6,7 +6,7 @@ from PIL import Image
 from random import shuffle
 from keras.preprocessing.image import ImageDataGenerator
 
-def save_model(model,epoch,accuracy,directory='output'):
+def save_model_unet(model,epoch,accuracy,directory='output'):
     fname = 'model_E%s_%s.hdf5'%(epoch,round(accuracy,3))
     dirname = os.path.join(directory,'%d_epoch'%epoch)
     os.makedirs(dirname, exist_ok=True)
