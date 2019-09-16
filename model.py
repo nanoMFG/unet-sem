@@ -148,8 +148,10 @@ class TrainUNET:
 
                 if epoch >= self.augment_after:
                     augment = self.augment
+                    crop = self.crop
                 else:
                     augment = False
+                    crop = False
 
                 aug_imgs, aug_masks = generate_batch(
                     img,
