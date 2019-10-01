@@ -13,6 +13,7 @@ from keras.preprocessing.image import ImageDataGenerator
 import keras.backend as K
 from keras.utils import multi_gpu_model
 from keras.utils import plot_model
+from sklearn.model_selection import KFold
 import time
 
 K.set_floatx('float32')
@@ -114,32 +115,53 @@ class TrainUNET:
         self.test_paths = self.image_mask_paths[:int(self.split*num_images)]
         self.train_paths = self.image_mask_paths[int(self.split*num_images):]
 
-        self.model = unet(input_size=self.input_size+(1,))
+        self.serial_model = unet(input_size=self.input_size+(1,))
         if self.ngpu > 1:
-            self.model = multi_gpu_model(self.model,gpus=self.ngpu)
+            self.model = multi_gpu_model(self.serial_model,gpus=self.ngpu)
+        else:
+            self.model = self.serial_model            
 
         optimizer = RMSprop
         # optimizer = Adam
         self.model.compile(optimizer = optimizer(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
         # plot_model(self.model, to_file='model.png',show_shapes=True)
 
-        with open('parameters.txt','w') as f:
-            d = vars(self)
-            f.write('[TEST PATHS]\n')
-            for path in self.test_paths:
-                s = '%s %s'%(path[0],path[1])
-                f.write('%s \n'%s)
-            f.write('[TRAIN PATHS]\n')
-            for path in self.train_paths:
-                s = '%s %s'%(path[0],path[1])
-                f.write('%s \n'%s)
-            f.write('Optimizer: %s \n'%optimizer.__name__)
-            for key, value in d.items():
-                if key not in ['test_paths','train_paths']:
-                    f.write("%s: %s \n"%(key,value))
+        # with open('parameters.txt','w') as f:
+        #     d = vars(self)
+        #     f.write('[TEST PATHS]\n')
+        #     for path in self.test_paths:
+        #         s = '%s %s'%(path[0],path[1])
+        #         f.write('%s \n'%s)
+        #     f.write('[TRAIN PATHS]\n')
+        #     for path in self.train_paths:
+        #         s = '%s %s'%(path[0],path[1])
+        #         f.write('%s \n'%s)
+        #     f.write('Optimizer: %s \n'%optimizer.__name__)
+        #     for key, value in d.items():
+        #         if key not in ['test_paths','train_paths']:
+        #             f.write("%s: %s \n"%(key,value))
 
+    def kFoldValidation(self,folds=10,random_state=1234):
+        kf = KFold(folds,random_state=random_state)
+        k = 0
+        acc_list = []
+        loss_list = [] 
+        for train, test in kf.split(self.image_mask_paths):
+            print("[FOLD] %s"%k)
+            k+=1 
+            self.train_paths = train
+            self.test = test
 
-    def train(self):
+            test_results = self.train()
+            loss_list.append(test_results[0])
+            acc_list.append(test_results[1])
+        print("[KFOLD_METRICS] ACC: %s +/- %s LOSS: %s +/- %s"%(np.mean(acc_list),np.std(acc_list),np.mean(loss_list),np.std(loss_list)))
+
+    def trainAll(self):
+        self.train_paths = self.image_mask_paths
+        self.train(test=False)
+
+    def train(self,test=True):
         best_acc = 0    
         for epoch in range(self.nepochs):
             shuffle(self.train_paths)
@@ -166,26 +188,26 @@ class TrainUNET:
                 loss = self.model.train_on_batch(aug_imgs,aug_masks)
                 print("[TRAIN] epoch: %d (%d/%d), %s: %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss))
 
-            test_loss = []
-            for i, img_mask_path in enumerate(self.test_paths):
-                img, mask = read_data(img_mask_path)
-                out_imgs,out_masks = generate_batch(
-                    img,
-                    mask,
-                    batch_size=1,
-                    random_crop_size=self.crop_size,
-                    output_size=self.input_size,
-                    crop = False,
-                    augment = False,
-                    aug_dict=self.data_gen_args,
-                    max_crop = self.max_crop)
+            if test:
+                test_loss = []
+                for i, img_mask_path in enumerate(self.test_paths):
+                    img, mask = read_data(img_mask_path)
+                    out_imgs,out_masks = generate_batch(
+                        img,
+                        mask,
+                        batch_size=1,
+                        crop = False,
+                        augment = False,)
 
-                prediction = self.model.predict_on_batch(out_imgs)
-                if epoch % 5 == 0 or epoch == self.nepochs-1:
-                    save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
-                test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
-            test_loss = np.mean(np.array(test_loss),axis=0)
-            if test_loss[1]>best_acc:
-                save_model_unet(self.model,epoch,test_loss[1])
-            print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
+                    prediction = self.model.predict_on_batch(out_imgs)
+                    if epoch % 5 == 0 or epoch == self.nepochs-1:
+                        save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
+                    test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
+                test_loss = np.mean(np.array(test_loss),axis=0)
+                if test_loss[1]>best_acc or epoch == self.nepochs-1:
+                    save_model_unet(self.serial_model,epoch,test_loss[1])
+                print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
+
+                if epoch == self.nepochs-1:
+                    return dict(zip(self.model.metrics_names,test_loss))
 

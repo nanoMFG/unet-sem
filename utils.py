@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import os
 import json
-from PIL import Image
+from PIL import Image, ImageEnhance
 from random import shuffle
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -43,6 +43,13 @@ def random_crop(img, mask, random_crop_size=(256,256), max_crop=False):
     x = np.random.randint(0, width - dx + 1)
     y = np.random.randint(0, height - dy + 1)
     return img[y:(y+dy), x:(x+dx), :], mask[y:(y+dy), x:(x+dx), :]
+
+def contrast(img,scale):
+    out_img = Image.fromarray(img[...,0])
+    contrast = ImageEnhance.Contrast(image)
+    out_img = contrast.enhance(scale)
+
+    return np.array(out_img)[...,np.newaxis]
 
 def random_augment(img, mask, aug_dict):
     image_datagen = ImageDataGenerator(**aug_dict)
