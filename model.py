@@ -153,8 +153,8 @@ class TrainUNET:
             self.test = test
 
             test_results = self.train()
-            loss_list.append(test_results[0])
-            acc_list.append(test_results[1])
+            loss_list.append(test_results['loss'])
+            acc_list.append(test_results['acc'])
         print("[KFOLD_METRICS] ACC: %s +/- %s LOSS: %s +/- %s"%(np.mean(acc_list),np.std(acc_list),np.mean(loss_list),np.std(loss_list)))
 
     def trainAll(self):
@@ -209,5 +209,5 @@ class TrainUNET:
                 print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
 
                 if epoch == self.nepochs-1:
-                    return dict(zip(self.model.metrics_names,test_loss))
+                    return dict(zip(self.model.metrics_names,test_loss.tolist()))
 
