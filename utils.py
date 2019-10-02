@@ -6,6 +6,16 @@ from PIL import Image, ImageEnhance
 from random import shuffle
 from keras.preprocessing.image import ImageDataGenerator
 
+def append_to_log(text,directory='output',filename='out.log',carriage_return=True):
+    os.makedirs(directory, exist_ok=True)
+    if carriage_return:
+        write = text+"\n"
+    else:
+        write = text
+
+    with open(os.path.join(directory,filename),'a') as f:
+        f.write(write)
+
 def save_model_unet(model,epoch,accuracy,directory='output'):
     fname = 'model_E%s_%s.hdf5'%(epoch,round(accuracy,3))
     dirname = os.path.join(directory,'%d_epoch'%epoch)

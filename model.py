@@ -115,24 +115,9 @@ class TrainUNET:
         self.test_paths = self.image_mask_paths[:int(self.split*num_images)]
         self.train_paths = self.image_mask_paths[int(self.split*num_images):]           
 
-        self.instantiate_model(self.ngpu)
+        self.instantiate_model()
 
-        # with open('parameters.txt','w') as f:
-        #     d = vars(self)
-        #     f.write('[TEST PATHS]\n')
-        #     for path in self.test_paths:
-        #         s = '%s %s'%(path[0],path[1])
-        #         f.write('%s \n'%s)
-        #     f.write('[TRAIN PATHS]\n')
-        #     for path in self.train_paths:
-        #         s = '%s %s'%(path[0],path[1])
-        #         f.write('%s \n'%s)
-        #     f.write('Optimizer: %s \n'%optimizer.__name__)
-        #     for key, value in d.items():
-        #         if key not in ['test_paths','train_paths']:
-        #             f.write("%s: %s \n"%(key,value))
-
-    def instantiate_model(self,ngpu):
+    def instantiate_model(self):
         self.serial_model = unet(input_size=self.input_size+(1,))
         if self.ngpu > 1:
             self.model = multi_gpu_model(self.serial_model,gpus=self.ngpu)
@@ -144,15 +129,13 @@ class TrainUNET:
         self.model.compile(optimizer = optimizer(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
         # plot_model(self.model, to_file='model.png',show_shapes=True)
 
-    def kFoldValidation(self,folds=10,random_state=1234):
+    def kFoldValidation(self,folds=10,random_state=9999):
         kf = KFold(n_splits=folds,shuffle=True,random_state=random_state)
         k = 0
         acc_list = []
         loss_list = [] 
         for train_idxs, test_idxs in kf.split(self.image_mask_paths):
-            self.instantiate_model(self.ngpu)
-            print("[FOLD] %s"%k)
-            k+=1 
+            self.instantiate_model()
 
             self.train_paths = [self.image_mask_paths[i] for i in train_idxs]
             self.test_paths = [self.image_mask_paths[i] for i in test_idxs]
@@ -160,14 +143,20 @@ class TrainUNET:
             test_results = self.train(save_dir="FOLD_%02d"%k)
             loss_list.append(test_results['loss'])
             acc_list.append(test_results['acc'])
+
+            k+=1 
         print("[KFOLD_METRICS] ACC: %s +/- %s LOSS: %s +/- %s"%(np.mean(acc_list),np.std(acc_list),np.mean(loss_list),np.std(loss_list)))
 
     def trainAll(self):
         self.train_paths = self.image_mask_paths
-        print("[ALL_DATA]")
+        append_to_log("[ALL_DATA]",directory="AllData")
         self.train(test=False,save_dir="AllData")
 
-    def train(self,test=True,save_dir='output'):
+    def train(self,test=True,save_dir='output',out_file='out.log'):
+        for key, value in self.__dict__.items():
+            if key not in ['test_paths','train_paths'] and not key.startswith("__"):
+                append_to_log("%s: %s"%(key,value),directory=save_dir,filename=out_file)
+
         best_acc = 0    
         for epoch in range(self.nepochs):
             shuffle(self.train_paths)
@@ -192,7 +181,11 @@ class TrainUNET:
                     aug_dict=self.data_gen_args,
                     max_crop = self.max_crop)
                 loss = self.model.train_on_batch(aug_imgs,aug_masks)
-                print("[TRAIN] epoch: %d (%d/%d), %s: %s %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss[0],loss[1]))
+                append_to_log(
+                    "[TRAIN] epoch: %d (%d/%d), %s: %s %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss[0],loss[1]),
+                    directory = save_dir,
+                    filename = out_file
+                    )
 
             if test:
                 test_loss = []
@@ -213,7 +206,11 @@ class TrainUNET:
                 test_loss = np.mean(np.array(test_loss),axis=0)
                 if test_loss[1]>best_acc or epoch == self.nepochs-1:
                     save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
-                print("[TEST] epoch: %d, %s: %s %s"%(epoch,self.model.metrics_names,test_loss[0],test_loss[1]))
+                append_to_log(
+                    "[TEST] epoch: %d, %s: %s %s"%(epoch,self.model.metrics_names,test_loss[0],test_loss[1]),
+                    directory = save_dir,
+                    filename = out_file
+                    )
 
                 if epoch == self.nepochs-1:
                     return dict(zip(self.model.metrics_names,test_loss.tolist()))
