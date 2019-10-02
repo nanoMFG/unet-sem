@@ -164,7 +164,8 @@ class TrainUNET:
 
     def trainAll(self):
         self.train_paths = self.image_mask_paths
-        self.train(test=False)
+        print("[ALL_DATA]")
+        self.train(test=False,save_dir="AllData")
 
     def train(self,test=True,save_dir='output'):
         best_acc = 0    
@@ -191,7 +192,7 @@ class TrainUNET:
                     aug_dict=self.data_gen_args,
                     max_crop = self.max_crop)
                 loss = self.model.train_on_batch(aug_imgs,aug_masks)
-                print("[TRAIN] epoch: %d (%d/%d), %s: %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss))
+                print("[TRAIN] epoch: %d (%d/%d), %s: %s %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss[0],loss[1]))
 
             if test:
                 test_loss = []
@@ -212,7 +213,7 @@ class TrainUNET:
                 test_loss = np.mean(np.array(test_loss),axis=0)
                 if test_loss[1]>best_acc or epoch == self.nepochs-1:
                     save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
-                print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
+                print("[TEST] epoch: %d, %s: %s %s"%(epoch,self.model.metrics_names,test_loss[0],test_loss[1]))
 
                 if epoch == self.nepochs-1:
                     return dict(zip(self.model.metrics_names,test_loss.tolist()))
