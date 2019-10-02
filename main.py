@@ -33,7 +33,9 @@ print(kwargs)
 
 run = TrainUNET(**kwargs)
 
-if kwargs['split'].is_integer():
+if kwargs['split']==0:
+	run.trainAll()
+elif kwargs['split'].is_integer():
 	run.kFoldValidation(folds=int(kwargs['split']))
 else:
 	run.train()

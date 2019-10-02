@@ -113,13 +113,9 @@ class TrainUNET:
             shuffle(self.image_mask_paths)
         num_images = len(self.image_mask_paths)
         self.test_paths = self.image_mask_paths[:int(self.split*num_images)]
-        self.train_paths = self.image_mask_paths[int(self.split*num_images):]
+        self.train_paths = self.image_mask_paths[int(self.split*num_images):]           
 
-        self.serial_model = unet(input_size=self.input_size+(1,))
-        if self.ngpu > 1:
-            self.model = multi_gpu_model(self.serial_model,gpus=self.ngpu)
-        else:
-            self.model = self.serial_model            
+        self.instantiate_model(self.ngpu)
 
         optimizer = RMSprop
         # optimizer = Adam
@@ -141,6 +137,13 @@ class TrainUNET:
         #         if key not in ['test_paths','train_paths']:
         #             f.write("%s: %s \n"%(key,value))
 
+    def instantiate_model(self,ngpu):
+        self.serial_model = unet(input_size=self.input_size+(1,))
+        if self.ngpu > 1:
+            self.model = multi_gpu_model(self.serial_model,gpus=self.ngpu)
+        else:
+            self.model = self.serial_model 
+
     def kFoldValidation(self,folds=10,random_state=1234):
         kf = KFold(n_splits=folds,shuffle=True,random_state=random_state)
         k = 0
@@ -149,6 +152,9 @@ class TrainUNET:
         for train_idxs, test_idxs in kf.split(self.image_mask_paths):
             print("[FOLD] %s"%k)
             k+=1 
+            
+            self.instantiate_model(self.ngpu)
+
             self.train_paths = [self.image_mask_paths[i] for i in train_idxs]
             self.test_paths = [self.image_mask_paths[i] for i in test_idxs]
 
@@ -195,6 +201,7 @@ class TrainUNET:
                     out_imgs,out_masks = generate_batch(
                         img,
                         mask,
+                        output_size=self.input_size
                         batch_size=1,
                         crop = False,
                         augment = False,)
