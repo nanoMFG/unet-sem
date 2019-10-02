@@ -150,9 +150,9 @@ class TrainUNET:
         acc_list = []
         loss_list = [] 
         for train_idxs, test_idxs in kf.split(self.image_mask_paths):
+            self.instantiate_model(self.ngpu)
             print("[FOLD] %s"%k)
             k+=1 
-            self.instantiate_model(self.ngpu)
 
             self.train_paths = [self.image_mask_paths[i] for i in train_idxs]
             self.test_paths = [self.image_mask_paths[i] for i in test_idxs]
