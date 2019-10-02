@@ -157,7 +157,7 @@ class TrainUNET:
             self.train_paths = [self.image_mask_paths[i] for i in train_idxs]
             self.test_paths = [self.image_mask_paths[i] for i in test_idxs]
 
-            test_results = self.train()
+            test_results = self.train(save_dir="FOLD_%02d"%k)
             loss_list.append(test_results['loss'])
             acc_list.append(test_results['acc'])
         print("[KFOLD_METRICS] ACC: %s +/- %s LOSS: %s +/- %s"%(np.mean(acc_list),np.std(acc_list),np.mean(loss_list),np.std(loss_list)))
