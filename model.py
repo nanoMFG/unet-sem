@@ -13,7 +13,7 @@ from keras.preprocessing.image import ImageDataGenerator
 import keras.backend as K
 from keras.utils import multi_gpu_model
 from keras.utils import plot_model
-from sklearn.model_selection import KFold
+from sklearn.cross_validation import KFold
 import time
 
 K.set_floatx('float32')
@@ -142,15 +142,15 @@ class TrainUNET:
         #             f.write("%s: %s \n"%(key,value))
 
     def kFoldValidation(self,folds=10,random_state=1234):
-        kf = KFold(folds,random_state=random_state)
+        kf = KFold(n=len(self.image_mask_paths),n_folds=folds,random_state=random_state)
         k = 0
         acc_list = []
         loss_list = [] 
-        for train, test in kf.split(self.image_mask_paths):
+        for train_idxs, test_idxs in kf:
             print("[FOLD] %s"%k)
             k+=1 
-            self.train_paths = train
-            self.test = test
+            self.train_paths = [self.image_mask_paths[i] for i in train_idxs]
+            self.test_paths = [self.image_mask_paths[i] for i in test_idxs]
 
             test_results = self.train()
             loss_list.append(test_results['loss'])
