@@ -166,7 +166,7 @@ class TrainUNET:
         self.train_paths = self.image_mask_paths
         self.train(test=False)
 
-    def train(self,test=True):
+    def train(self,test=True,save_dir='output'):
         best_acc = 0    
         for epoch in range(self.nepochs):
             shuffle(self.train_paths)
@@ -207,11 +207,11 @@ class TrainUNET:
 
                     prediction = self.model.predict_on_batch(out_imgs)
                     if epoch % 5 == 0 or epoch == self.nepochs-1:
-                        save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch)
+                        save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch,directory=save_dir)
                     test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
                 test_loss = np.mean(np.array(test_loss),axis=0)
                 if test_loss[1]>best_acc or epoch == self.nepochs-1:
-                    save_model_unet(self.serial_model,epoch,test_loss[1])
+                    save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
                 print("[TEST] epoch: %d, %s: %s"%(epoch,self.model.metrics_names,test_loss))
 
                 if epoch == self.nepochs-1:
