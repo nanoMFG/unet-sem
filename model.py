@@ -204,7 +204,7 @@ class TrainUNET:
                         save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch,directory=save_dir)
                     test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
                 test_loss = np.mean(np.array(test_loss),axis=0)
-                if test_loss[1]>best_acc or epoch == self.nepochs-1:
+                if test_loss[1]>best_acc:
                     save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
                 append_to_log(
                     "[TEST] epoch: %d, %s: %s %s"%(epoch,self.model.metrics_names,test_loss[0],test_loss[1]),
@@ -212,6 +212,10 @@ class TrainUNET:
                     filename = out_file
                     )
 
-            if epoch == self.nepochs-1:
-                return dict(zip(self.model.metrics_names,test_loss.tolist()))
+                if epoch == self.nepochs-1:
+                    save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
+                    return dict(zip(self.model.metrics_names,test_loss.tolist()))
+
+            if not test and epoch == self.nepochs-1:
+                save_model_unet(self.serial_model,epoch,train_loss[1],directory=save_dir)
 
