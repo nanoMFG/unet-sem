@@ -212,6 +212,6 @@ class TrainUNET:
                     filename = out_file
                     )
 
-                if epoch == self.nepochs-1:
-                    return dict(zip(self.model.metrics_names,test_loss.tolist()))
+            if epoch == self.nepochs-1:
+                return dict(zip(self.model.metrics_names,test_loss.tolist()))
 
