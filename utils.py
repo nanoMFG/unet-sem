@@ -18,12 +18,12 @@ def append_to_log(text,directory='output',filename='out.log',carriage_return=Tru
 
 def save_model_unet(model,epoch,accuracy,directory='output'):
     fname = 'model_E%003d_%s.hdf5'%(epoch,round(accuracy,3))
-    dirname = os.path.join(directory,'%d_epoch'%epoch)
+    dirname = os.path.join(directory,'%003d_epoch'%epoch)
     os.makedirs(dirname, exist_ok=True)
     model.save(os.path.join(dirname,fname))
 
 def save_output(img,mask,output,epoch,index,directory='output'):
-    os.makedirs(os.path.join(directory,'%d_epoch'%epoch), exist_ok=True)
+    os.makedirs(os.path.join(directory,'%003d_epoch'%epoch), exist_ok=True)
 
     with open(os.path.join(directory,'%003d_epoch'%epoch,'%003d_input_image.json'%index),'w') as f:
         json.dump(img[...,0].tolist(),f)
