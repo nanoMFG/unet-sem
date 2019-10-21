@@ -217,5 +217,5 @@ class TrainUNET:
                     return dict(zip(self.model.metrics_names,test_loss.tolist()))
 
             if not test and epoch == self.nepochs-1:
-                save_model_unet(self.serial_model,epoch,train_loss[1],directory=save_dir)
+                save_model_unet(self.serial_model,epoch,-1,directory=save_dir)
 
