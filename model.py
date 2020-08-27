@@ -200,7 +200,7 @@ class TrainUNET:
                         augment = False,)
 
                     prediction = self.model.predict_on_batch(out_imgs)
-                    if epoch % 5 == 0 or epoch == self.nepochs-1:
+                    if epoch % 20 == 0 or epoch == self.nepochs-1:
                         save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch,directory=save_dir)
                     test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
                 test_loss = np.mean(np.array(test_loss),axis=0)
