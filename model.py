@@ -15,6 +15,7 @@ from keras.utils import multi_gpu_model
 from keras.utils import plot_model
 from sklearn.model_selection import KFold
 import time
+import os
 
 K.set_floatx('float32')
 
@@ -83,8 +84,9 @@ class TrainUNET:
                     lr=1e-4,
                     shuffle_data=False,
                     augment_after=0,
-                    output_dir=None):
-        
+                    output_dir=None,
+                    input_dir=None):
+
         self.data_gen_args = dict(rotation_range=0.2,
                     width_shift_range=0.05,
                     height_shift_range=0.05,
@@ -108,12 +110,25 @@ class TrainUNET:
         self.shuffle_data = shuffle_data
         self.augment_after = augment_after
 
-        self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
+        if input_dir is not None:
+            # Automatically scan directory for all images, need to add some
+            # error checking to make sure everything exists
+            self.image_mask_paths = []
+            # https://stackoverflow.com/a/3964691
+            for file in os.listdir(input_dir):
+                if file.endwith('.tif'):
+                    image = os.path.join(input_dir, file)
+                    num = int(file.split('<')[1].split('>')[0])
+                    mask = os.path.join(input_dir, 'image_mask<{}>'.format(num))
+                    self.image_mask_paths.append((image, mask))
+        else:
+            self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
+
         if self.shuffle_data:
             shuffle(self.image_mask_paths)
         num_images = len(self.image_mask_paths)
         self.test_paths = self.image_mask_paths[:int(self.split*num_images)]
-        self.train_paths = self.image_mask_paths[int(self.split*num_images):]           
+        self.train_paths = self.image_mask_paths[int(self.split*num_images):]
 
         self.instantiate_model()
 
@@ -122,8 +137,8 @@ class TrainUNET:
         if self.ngpu > 1:
             self.model = multi_gpu_model(self.serial_model,gpus=self.ngpu)
         else:
-            self.model = self.serial_model 
-        
+            self.model = self.serial_model
+
         optimizer = RMSprop
         # optimizer = Adam
         self.model.compile(optimizer = optimizer(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
@@ -133,7 +148,7 @@ class TrainUNET:
         kf = KFold(n_splits=folds,shuffle=True,random_state=random_state)
         k = 0
         acc_list = []
-        loss_list = [] 
+        loss_list = []
         for train_idxs, test_idxs in kf.split(self.image_mask_paths):
             self.instantiate_model()
 
@@ -144,7 +159,7 @@ class TrainUNET:
             loss_list.append(test_results['loss'])
             acc_list.append(test_results['acc'])
 
-            k+=1 
+            k+=1
         print("[KFOLD_METRICS] ACC: %s +/- %s LOSS: %s +/- %s"%(np.mean(acc_list),np.std(acc_list),np.mean(loss_list),np.std(loss_list)))
 
     def trainAll(self):
@@ -157,7 +172,7 @@ class TrainUNET:
             if key not in ['test_paths','train_paths'] and not key.startswith("__"):
                 append_to_log("%s: %s"%(key,value),directory=save_dir,filename=out_file)
 
-        best_acc = 0    
+        best_acc = 0
         for epoch in range(self.nepochs):
             shuffle(self.train_paths)
             for i, img_mask_path in enumerate(self.train_paths):
@@ -218,4 +233,3 @@ class TrainUNET:
 
             if not test and epoch == self.nepochs-1:
                 save_model_unet(self.serial_model,epoch,-1,directory=save_dir)
-
