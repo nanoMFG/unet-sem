@@ -1,4 +1,3 @@
-
 from utils import *
 from keras.models import *
 from keras.layers import *
@@ -16,6 +15,7 @@ from keras.utils import plot_model
 from sklearn.model_selection import KFold
 import time
 import os
+import numpy as np
 
 K.set_floatx('float32')
 
@@ -173,63 +173,78 @@ class TrainUNET:
                 append_to_log("%s: %s"%(key,value),directory=save_dir,filename=out_file)
 
         best_acc = 0
-        for epoch in range(self.nepochs):
-            shuffle(self.train_paths)
-            for i, img_mask_path in enumerate(self.train_paths):
-                img, mask = read_data(img_mask_path)
 
-                if epoch >= self.augment_after:
-                    augment = self.augment
-                    crop = self.crop
-                else:
-                    augment = False
-                    crop = False
-
-                aug_imgs, aug_masks = generate_batch(
-                    img,
-                    mask,
-                    batch_size=self.batch_size,
-                    random_crop_size=self.crop_size,
-                    output_size=self.input_size,
-                    crop = self.crop,
-                    augment = augment,
-                    aug_dict=self.data_gen_args,
-                    max_crop = self.max_crop)
-                loss = self.model.train_on_batch(aug_imgs,aug_masks)
-                append_to_log(
-                    "[TRAIN] epoch: %d (%d/%d), %s: %s %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss[0],loss[1]),
-                    directory = save_dir,
-                    filename = out_file
-                    )
-
-            if test:
-                test_loss = []
-                for i, img_mask_path in enumerate(self.test_paths):
-                    img, mask = read_data(img_mask_path)
-                    out_imgs,out_masks = generate_batch(
-                        img,
-                        mask,
-                        output_size=self.input_size,
-                        batch_size=1,
-                        crop = False,
-                        augment = False,)
-
-                    prediction = self.model.predict_on_batch(out_imgs)
-                    if epoch % 20 == 0 or epoch == self.nepochs-1:
-                        save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch,directory=save_dir)
-                    test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
-                test_loss = np.mean(np.array(test_loss),axis=0)
-                if test_loss[1]>best_acc:
-                    save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
-                append_to_log(
-                    "[TEST] epoch: %d, %s: %s %s"%(epoch,self.model.metrics_names,test_loss[0],test_loss[1]),
-                    directory = save_dir,
-                    filename = out_file
-                    )
-
-                if epoch == self.nepochs-1:
-                    save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
-                    return dict(zip(self.model.metrics_names,test_loss.tolist()))
-
-            if not test and epoch == self.nepochs-1:
-                save_model_unet(self.serial_model,epoch,-1,directory=save_dir)
+        #this should be moved to utils eventually
+        imgs = []
+        masks = []
+        for i, img_mask_path in enumerate(self.train_paths):
+            img, mask = read_data(img_mask_path)
+            imgs.append(img)
+            masks.append(mask)
+            #need to add augment here
+        x = np.array(img)
+        y = np.array(mask)
+        self.model.fit(x, y,
+            batch_size=self.batch_size,
+            epochs=self.nepochs,
+            shuffle=True)
+        # for epoch in range(self.nepochs):
+        #     shuffle(self.train_paths)
+        #     for i, img_mask_path in enumerate(self.train_paths):
+        #         img, mask = read_data(img_mask_path)
+        #
+        #         if epoch >= self.augment_after:
+        #             augment = self.augment
+        #             crop = self.crop
+        #         else:
+        #             augment = False
+        #             crop = False
+        #
+        #         aug_imgs, aug_masks = generate_batch(
+        #             img,
+        #             mask,
+        #             batch_size=self.batch_size,
+        #             random_crop_size=self.crop_size,
+        #             output_size=self.input_size,
+        #             crop = self.crop,
+        #             augment = augment,
+        #             aug_dict=self.data_gen_args,
+        #             max_crop = self.max_crop)
+        #         loss = self.model.train_on_batch(aug_imgs,aug_masks)
+        #         append_to_log(
+        #             "[TRAIN] epoch: %d (%d/%d), %s: %s %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss[0],loss[1]),
+        #             directory = save_dir,
+        #             filename = out_file
+        #             )
+        #
+        #     if test:
+        #         test_loss = []
+        #         for i, img_mask_path in enumerate(self.test_paths):
+        #             img, mask = read_data(img_mask_path)
+        #             out_imgs,out_masks = generate_batch(
+        #                 img,
+        #                 mask,
+        #                 output_size=self.input_size,
+        #                 batch_size=1,
+        #                 crop = False,
+        #                 augment = False,)
+        #
+        #             prediction = self.model.predict_on_batch(out_imgs)
+        #             if epoch % 20 == 0 or epoch == self.nepochs-1:
+        #                 save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch,directory=save_dir)
+        #             test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
+        #         test_loss = np.mean(np.array(test_loss),axis=0)
+        #         if test_loss[1]>best_acc:
+        #             save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
+        #         append_to_log(
+        #             "[TEST] epoch: %d, %s: %s %s"%(epoch,self.model.metrics_names,test_loss[0],test_loss[1]),
+        #             directory = save_dir,
+        #             filename = out_file
+        #             )
+        #
+        #         if epoch == self.nepochs-1:
+        #             save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
+        #             return dict(zip(self.model.metrics_names,test_loss.tolist()))
+        #
+        #     if not test and epoch == self.nepochs-1:
+        #         save_model_unet(self.serial_model,epoch,-1,directory=save_dir)
