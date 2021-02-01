@@ -179,9 +179,20 @@ class TrainUNET:
         masks = []
         for i, img_mask_path in enumerate(self.train_paths):
             img, mask = read_data(img_mask_path)
-            imgs.append(img)
-            masks.append(mask)
-            #need to add augment here
+            aug_imgs, aug_masks = generate_batch(
+                        img,
+                        mask,
+                        batch_size=self.batch_size,
+                        random_crop_size=self.crop_size,
+                        output_size=self.input_size,
+                        crop = self.crop,
+                        augment = self.augment,
+                        aug_dict=self.data_gen_args,
+                        max_crop = self.max_crop)
+            for aug_img in aug_imgs:
+                imgs.append(aug_img)
+            for aug_mask in aug_masks:
+                masks.append(aug_mask)
         x = np.array(img)
         y = np.array(mask)
         self.model.fit(x, y,
