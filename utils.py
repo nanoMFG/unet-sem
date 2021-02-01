@@ -35,6 +35,8 @@ def save_output(img,mask,output,epoch,index,directory='output'):
 def read_data(img_mask_path):
     img_path = img_mask_path[0]
     mask_path = img_mask_path[1]
+    #DONT LEAVE THESE PRINT STATEMENTS
+    print('Reading image', img_path, 'and mask', mask_path)
     img = cv2.imread(img_path,cv2.IMREAD_GRAYSCALE)
     img = img[...,np.newaxis]
     mask = cv2.imread(mask_path,cv2.IMREAD_GRAYSCALE)
@@ -109,7 +111,7 @@ def generate_batch(img, mask, batch_size=32, random_crop_size=(256,256), output_
         out_imgs[b,...] = out_img
         out_masks[b,...] = out_mask
 
-    return out_imgs, out_masks    
+    return out_imgs, out_masks
 
 def augment_input(img,mask,aug_dict,batch_size=32,random_crop_size=(256,256),only_crop=False):
     LX,LY,LZ = img.shape
