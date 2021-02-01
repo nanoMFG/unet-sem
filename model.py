@@ -116,10 +116,12 @@ class TrainUNET:
             self.image_mask_paths = []
             # https://stackoverflow.com/a/3964691
             for file in os.listdir(input_dir):
-                if file.endwith('.tif'):
+                if file.endswith('.tif'):
+                    #DO NOT LEAVE THESE PRINT STATEMENTS, THEY NEED TO BE LOGGED INSTEAD
                     image = os.path.join(input_dir, file)
                     num = int(file.split('<')[1].split('>')[0])
                     mask = os.path.join(input_dir, 'image_mask<{}>'.format(num))
+                    print('Loading image', image, 'and mask', mask)
                     self.image_mask_paths.append((image, mask))
         else:
             self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
