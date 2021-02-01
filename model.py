@@ -178,12 +178,11 @@ class TrainUNET:
 
         #this should be moved to utils eventually
         num_imgs = len(self.train_paths) * self.batch_size
-        imgs = np.zeros((num_imgs, self.input_size, self.input_size, 1))
-        masks = np.zeros((num_imgs, self.input_size, self.input_size, 1))
+        imgs = np.zeros((num_imgs, self.input_size[0], self.input_size[1], 1))
+        masks = np.zeros((num_imgs, self.input_size[0], self.input_size[1], 1))
         i = 0
         for img_path, img_mask_path in enumerate(self.train_paths):
             img, mask = read_data(img_mask_path)
-            print(self.input_size)
             aug_imgs, aug_masks = generate_batch(
                         img,
                         mask,
