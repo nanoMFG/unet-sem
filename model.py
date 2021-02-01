@@ -120,7 +120,7 @@ class TrainUNET:
                     #DO NOT LEAVE THESE PRINT STATEMENTS, THEY NEED TO BE LOGGED INSTEAD
                     image = os.path.join(input_dir, file)
                     num = int(file.split('<')[1].split('>')[0])
-                    mask = os.path.join(input_dir, 'image_mask<{}>'.format(num))
+                    mask = os.path.join(input_dir, 'image_mask<{}>.jpg'.format(num))
                     print('Loading image path', image, 'and mask path', mask)
                     self.image_mask_paths.append((image, mask))
         else:
