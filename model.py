@@ -181,6 +181,7 @@ class TrainUNET:
         masks = []
         for i, img_mask_path in enumerate(self.train_paths):
             img, mask = read_data(img_mask_path)
+            print(self.input_size)
             aug_imgs, aug_masks = generate_batch(
                         img,
                         mask,
@@ -193,16 +194,16 @@ class TrainUNET:
                         max_crop = self.max_crop)
             print
             for aug_img in aug_imgs:
-                print(aug_img.shape)
                 imgs.append(aug_img)
             for aug_mask in aug_masks:
+                print(aug_mask.shape)
                 masks.append(aug_mask)
         x = np.array(img)
         y = np.array(mask)
-        # self.model.fit(x, y,
-        #     batch_size=self.batch_size,
-        #     epochs=self.nepochs,
-        #     shuffle=True)
+        self.model.fit(x, y,
+            batch_size=self.batch_size,
+            epochs=self.nepochs,
+            shuffle=True)
         # for epoch in range(self.nepochs):
         #     shuffle(self.train_paths)
         #     for i, img_mask_path in enumerate(self.train_paths):

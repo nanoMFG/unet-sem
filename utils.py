@@ -35,8 +35,6 @@ def save_output(img,mask,output,epoch,index,directory='output'):
 def read_data(img_mask_path):
     img_path = img_mask_path[0]
     mask_path = img_mask_path[1]
-    #DONT LEAVE THESE PRINT STATEMENTS
-    print('Reading image', img_path, 'and mask', mask_path)
     img = cv2.imread(img_path,cv2.IMREAD_GRAYSCALE)
     img = img[...,np.newaxis]
     mask = cv2.imread(mask_path,cv2.IMREAD_GRAYSCALE)
