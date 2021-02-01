@@ -177,9 +177,11 @@ class TrainUNET:
         best_acc = 0
 
         #this should be moved to utils eventually
-        imgs = []
-        masks = []
-        for i, img_mask_path in enumerate(self.train_paths):
+        num_imgs = len(self.train_paths) * self.batch_size
+        imgs = np.zeros((num_imgs, self.input_size, self.input_size, 1))
+        masks = np.zeros((num_imgs, self.input_size, self.input_size, 1))
+        i = 0
+        for img_path, img_mask_path in enumerate(self.train_paths):
             img, mask = read_data(img_mask_path)
             print(self.input_size)
             aug_imgs, aug_masks = generate_batch(
@@ -192,15 +194,13 @@ class TrainUNET:
                         augment = self.augment,
                         aug_dict=self.data_gen_args,
                         max_crop = self.max_crop)
-            print
+            #Can likely convert this to use slicing instead
             for aug_img in aug_imgs:
-                imgs.append(aug_img)
+                imgs[i] = aug_img
             for aug_mask in aug_masks:
-                print(aug_mask.shape)
-                masks.append(aug_mask)
-        x = np.array(img)
-        y = np.array(mask)
-        self.model.fit(x, y,
+                masks[i] = aug_mask
+            i += 1
+        self.model.fit(imgs, masks,
             batch_size=self.batch_size,
             epochs=self.nepochs,
             shuffle=True)
