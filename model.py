@@ -237,6 +237,7 @@ class TrainUNET:
             batch_size=self.batch_size,
             epochs=self.nepochs,
             shuffle=True,
+            validation_data=(test_imgs, test_masks),
             callbacks=[tensorboard_cb, image_cb])
         # for epoch in range(self.nepochs):
         #     shuffle(self.train_paths)
