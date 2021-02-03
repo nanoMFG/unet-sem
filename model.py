@@ -222,8 +222,8 @@ class TrainUNET:
             for aug_mask in aug_masks:
                 test_masks[i] = aug_mask
             i += 1
-        
-        tensorboard_cb = TensorBoard('logs/fit/')
+
+        tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
         self.model.fit(imgs, masks,
             batch_size=self.batch_size,
             epochs=self.nepochs,
