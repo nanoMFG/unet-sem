@@ -225,12 +225,12 @@ class TrainUNET:
 
         tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
 
-        file_writer = tf.summary.create_file_writer('logs/images/')
+        file_writer = tf.summary.FileWriter('logs/images/')
         def log_validation_results(epoch, logs):
             with file_writer.as_default():
                 tf.summary.image('Validation Images', test_imgs, step=epoch)
                 tf.summary.image('Validation Masks', test_masks, step=epoch)
-                tf.summary.image('Model output', model.predict(test_imgs), step=epoch)
+                tf.summary.image('Model output', self.model.predict(test_imgs), step=epoch)
         image_cb = LambdaCallback(on_epoch_end=log_validation_results)
 
         self.model.fit(imgs, masks,
