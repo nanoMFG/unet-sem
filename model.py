@@ -7,7 +7,7 @@ from keras.layers import *
 #import keras.backend as K
 import tensorflow as tf
 from keras.optimizers import *
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard, LambdaCallback
 from keras.preprocessing.image import ImageDataGenerator
 import keras.backend as K
 from keras.utils import multi_gpu_model
@@ -224,12 +224,20 @@ class TrainUNET:
             i += 1
 
         tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
+
+        file_writer = tf.summary.create_file_writer('logs/images/')
+        def log_validation_results(epoch, logs):
+            with file_writer.as_default():
+                tf.summary.image('Validation Images', test_imgs, step=epoch)
+                tf.summary.image('Validation Masks', test_masks, step=epoch)
+                tf.summary.image('Model output', model.predict(test_imgs), step=epoch)
+        image_cb = LambdaCallback(on_epoch_end=log_validation_results)
+
         self.model.fit(imgs, masks,
             batch_size=self.batch_size,
             epochs=self.nepochs,
             shuffle=True,
-            validation_data=(test_imgs, test_masks),
-            callbacks=[tensorboard_cb])
+            callbacks=[tensorboard_cb, image_cb])
         # for epoch in range(self.nepochs):
         #     shuffle(self.train_paths)
         #     for i, img_mask_path in enumerate(self.train_paths):
