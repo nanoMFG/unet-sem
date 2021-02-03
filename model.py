@@ -200,11 +200,35 @@ class TrainUNET:
                 masks[i] = aug_mask
             i += 1
 
-        tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
+        num_test_imgs = len(self.test_paths) * self.batch_size
+        test_imgs = np.zeros((num_test_imgs, self.input_size[0], self.input_size[1], 1))
+        test_masks = np.zeros((num_test_imgs, self.input_size[0], self.input_size[1], 1))
+        i = 0
+        for img_path, img_mask_path in enumerate(self.test_paths):
+            img, mask = read_data(img_mask_path)
+            aug_imgs, aug_masks = generate_batch(
+                        img,
+                        mask,
+                        batch_size=self.batch_size,
+                        random_crop_size=self.crop_size,
+                        output_size=self.input_size,
+                        crop = self.crop,
+                        augment = self.augment,
+                        aug_dict=self.data_gen_args,
+                        max_crop = self.max_crop)
+            #Can likely convert this to use slicing instead
+            for aug_img in aug_imgs:
+                test_imgs[i] = aug_img
+            for aug_mask in aug_masks:
+                test_masks[i] = aug_mask
+            i += 1
+        
+        tensorboard_cb = TensorBoard('logs/fit/')
         self.model.fit(imgs, masks,
             batch_size=self.batch_size,
             epochs=self.nepochs,
             shuffle=True,
+            validation_data=(test_imgs, test_masks),
             callbacks=[tensorboard_cb])
         # for epoch in range(self.nepochs):
         #     shuffle(self.train_paths)
