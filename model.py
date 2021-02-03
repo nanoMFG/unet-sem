@@ -7,7 +7,7 @@ from keras.layers import *
 #import keras.backend as K
 import tensorflow as tf
 from keras.optimizers import *
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 import keras.backend as K
 from keras.utils import multi_gpu_model
@@ -199,10 +199,13 @@ class TrainUNET:
             for aug_mask in aug_masks:
                 masks[i] = aug_mask
             i += 1
+
+        tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
         self.model.fit(imgs, masks,
             batch_size=self.batch_size,
             epochs=self.nepochs,
-            shuffle=True)
+            shuffle=True,
+            callbacks=[tensorboard_cb])
         # for epoch in range(self.nepochs):
         #     shuffle(self.train_paths)
         #     for i, img_mask_path in enumerate(self.train_paths):
