@@ -1,17 +1,18 @@
 from utils import *
-from keras.models import *
-from keras.layers import *
 #from keras.optimizers import *
 #from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 #from keras.preprocessing.image import ImageDataGenerator
 #import keras.backend as K
 import tensorflow as tf
-from keras.optimizers import *
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard, LambdaCallback
-from keras.preprocessing.image import ImageDataGenerator
-import keras.backend as K
-from keras.utils import multi_gpu_model
-from keras.utils import plot_model
+from tensorflow import keras
+from tensorflow.keras.models import *
+from tensorflow.keras.layers import *
+from tensorflow.keras.optimizers import *
+from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard, LambdaCallback
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import tensorflow.keras.backend as K
+# from tensorflow.keras.utils import multi_gpu_model
+from tensorflow.keras.utils import plot_model
 from sklearn.model_selection import KFold
 import time
 import os
@@ -61,7 +62,7 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
     conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
     conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
 
-    model = Model(input = inputs, output = conv10)
+    model = Model(inputs = inputs, outputs = conv10)
 
     #model.summary()
 
@@ -225,7 +226,7 @@ class TrainUNET:
 
         tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
 
-        file_writer = tf.summary.FileWriter('logs/images/')
+        file_writer = tf.summary.create_file_writer('logs/images/')
         def log_validation_results(epoch, logs):
             with file_writer.as_default():
                 tf.summary.image('Validation Images', test_imgs, step=epoch)
