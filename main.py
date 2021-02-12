@@ -24,6 +24,7 @@ parser.add_argument('--nepochs', default = 5, type = int, help='Number of epochs
 parser.add_argument('--batch_size', default = 32, type = int, help='Number of samples per batch.')
 parser.add_argument('--split', default = 0.1, type = float, help='If float, fraction of data to use for validation. If integer, number of folds. If zero, train on all data (used for final model.')
 parser.add_argument('--lr', default = 1e-4, type = float, help='Learning rate.')
+parser.add_argument('--input_dir', default = 'data/', type = str, help='Directory to pull images from')
 
 kwargs = vars(parser.parse_args())
 

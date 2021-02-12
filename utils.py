@@ -4,7 +4,7 @@ import os
 import json
 from PIL import Image, ImageEnhance
 from random import shuffle
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 def append_to_log(text,directory='output',filename='out.log',carriage_return=True):
     os.makedirs(directory, exist_ok=True)
@@ -109,7 +109,7 @@ def generate_batch(img, mask, batch_size=32, random_crop_size=(256,256), output_
         out_imgs[b,...] = out_img
         out_masks[b,...] = out_mask
 
-    return out_imgs, out_masks    
+    return out_imgs, out_masks
 
 def augment_input(img,mask,aug_dict,batch_size=32,random_crop_size=(256,256),only_crop=False):
     LX,LY,LZ = img.shape

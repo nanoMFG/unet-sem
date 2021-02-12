@@ -1,20 +1,22 @@
-
 from utils import *
-from keras.models import *
-from keras.layers import *
 #from keras.optimizers import *
 #from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 #from keras.preprocessing.image import ImageDataGenerator
 #import keras.backend as K
 import tensorflow as tf
-from keras.optimizers import *
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras.preprocessing.image import ImageDataGenerator
-import keras.backend as K
-from keras.utils import multi_gpu_model
-from keras.utils import plot_model
+from tensorflow import keras
+from tensorflow.keras.models import *
+from tensorflow.keras.layers import *
+from tensorflow.keras.optimizers import *
+from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard, LambdaCallback
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import tensorflow.keras.backend as K
+# from tensorflow.keras.utils import multi_gpu_model
+from tensorflow.keras.utils import plot_model
 from sklearn.model_selection import KFold
 import time
+import os
+import numpy as np
 
 K.set_floatx('float32')
 
@@ -60,7 +62,7 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
     conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
     conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
 
-    model = Model(input = inputs, output = conv10)
+    model = Model(inputs = inputs, outputs = conv10)
 
     #model.summary()
 
@@ -83,8 +85,9 @@ class TrainUNET:
                     lr=1e-4,
                     shuffle_data=False,
                     augment_after=0,
-                    output_dir=None):
-        
+                    output_dir=None,
+                    input_dir=None):
+
         self.data_gen_args = dict(rotation_range=0.2,
                     width_shift_range=0.05,
                     height_shift_range=0.05,
@@ -108,12 +111,27 @@ class TrainUNET:
         self.shuffle_data = shuffle_data
         self.augment_after = augment_after
 
-        self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
+        if input_dir is not None:
+            # Automatically scan directory for all images, need to add some
+            # error checking to make sure everything exists
+            self.image_mask_paths = []
+            # https://stackoverflow.com/a/3964691
+            for file in os.listdir(input_dir):
+                if file.endswith('.tif'):
+                    #DO NOT LEAVE THESE PRINT STATEMENTS, THEY NEED TO BE LOGGED INSTEAD
+                    image = os.path.join(input_dir, file)
+                    num = int(file.split('<')[1].split('>')[0])
+                    mask = os.path.join(input_dir, 'image_mask<{}>.jpg'.format(num))
+                    print('Loading image path', image, 'and mask path', mask)
+                    self.image_mask_paths.append((image, mask))
+        else:
+            self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
+
         if self.shuffle_data:
             shuffle(self.image_mask_paths)
         num_images = len(self.image_mask_paths)
         self.test_paths = self.image_mask_paths[:int(self.split*num_images)]
-        self.train_paths = self.image_mask_paths[int(self.split*num_images):]           
+        self.train_paths = self.image_mask_paths[int(self.split*num_images):]
 
         self.instantiate_model()
 
@@ -122,8 +140,8 @@ class TrainUNET:
         if self.ngpu > 1:
             self.model = multi_gpu_model(self.serial_model,gpus=self.ngpu)
         else:
-            self.model = self.serial_model 
-        
+            self.model = self.serial_model
+
         optimizer = RMSprop
         # optimizer = Adam
         self.model.compile(optimizer = optimizer(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
@@ -133,7 +151,7 @@ class TrainUNET:
         kf = KFold(n_splits=folds,shuffle=True,random_state=random_state)
         k = 0
         acc_list = []
-        loss_list = [] 
+        loss_list = []
         for train_idxs, test_idxs in kf.split(self.image_mask_paths):
             self.instantiate_model()
 
@@ -144,7 +162,7 @@ class TrainUNET:
             loss_list.append(test_results['loss'])
             acc_list.append(test_results['acc'])
 
-            k+=1 
+            k+=1
         print("[KFOLD_METRICS] ACC: %s +/- %s LOSS: %s +/- %s"%(np.mean(acc_list),np.std(acc_list),np.mean(loss_list),np.std(loss_list)))
 
     def trainAll(self):
@@ -157,65 +175,128 @@ class TrainUNET:
             if key not in ['test_paths','train_paths'] and not key.startswith("__"):
                 append_to_log("%s: %s"%(key,value),directory=save_dir,filename=out_file)
 
-        best_acc = 0    
-        for epoch in range(self.nepochs):
-            shuffle(self.train_paths)
-            for i, img_mask_path in enumerate(self.train_paths):
-                img, mask = read_data(img_mask_path)
+        best_acc = 0
 
-                if epoch >= self.augment_after:
-                    augment = self.augment
-                    crop = self.crop
-                else:
-                    augment = False
-                    crop = False
-
-                aug_imgs, aug_masks = generate_batch(
-                    img,
-                    mask,
-                    batch_size=self.batch_size,
-                    random_crop_size=self.crop_size,
-                    output_size=self.input_size,
-                    crop = self.crop,
-                    augment = augment,
-                    aug_dict=self.data_gen_args,
-                    max_crop = self.max_crop)
-                loss = self.model.train_on_batch(aug_imgs,aug_masks)
-                append_to_log(
-                    "[TRAIN] epoch: %d (%d/%d), %s: %s %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss[0],loss[1]),
-                    directory = save_dir,
-                    filename = out_file
-                    )
-
-            if test:
-                test_loss = []
-                for i, img_mask_path in enumerate(self.test_paths):
-                    img, mask = read_data(img_mask_path)
-                    out_imgs,out_masks = generate_batch(
+        #this should be moved to utils eventually
+        num_imgs = len(self.train_paths) * self.batch_size
+        imgs = np.zeros((num_imgs, self.input_size[0], self.input_size[1], 1))
+        masks = np.zeros((num_imgs, self.input_size[0], self.input_size[1], 1))
+        i = 0
+        for img_path, img_mask_path in enumerate(self.train_paths):
+            img, mask = read_data(img_mask_path)
+            aug_imgs, aug_masks = generate_batch(
                         img,
                         mask,
+                        batch_size=self.batch_size,
+                        random_crop_size=self.crop_size,
                         output_size=self.input_size,
-                        batch_size=1,
-                        crop = False,
-                        augment = False,)
+                        crop = self.crop,
+                        augment = self.augment,
+                        aug_dict=self.data_gen_args,
+                        max_crop = self.max_crop)
+            #Can likely convert this to use slicing instead
+            for aug_img in aug_imgs:
+                imgs[i] = aug_img
+            for aug_mask in aug_masks:
+                masks[i] = aug_mask
+            i += 1
 
-                    prediction = self.model.predict_on_batch(out_imgs)
-                    if epoch % 20 == 0 or epoch == self.nepochs-1:
-                        save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch,directory=save_dir)
-                    test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
-                test_loss = np.mean(np.array(test_loss),axis=0)
-                if test_loss[1]>best_acc:
-                    save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
-                append_to_log(
-                    "[TEST] epoch: %d, %s: %s %s"%(epoch,self.model.metrics_names,test_loss[0],test_loss[1]),
-                    directory = save_dir,
-                    filename = out_file
-                    )
+        num_test_imgs = len(self.test_paths) * self.batch_size
+        test_imgs = np.zeros((num_test_imgs, self.input_size[0], self.input_size[1], 1))
+        test_masks = np.zeros((num_test_imgs, self.input_size[0], self.input_size[1], 1))
+        i = 0
+        for img_path, img_mask_path in enumerate(self.test_paths):
+            img, mask = read_data(img_mask_path)
+            aug_imgs, aug_masks = generate_batch(
+                        img,
+                        mask,
+                        batch_size=self.batch_size,
+                        random_crop_size=self.crop_size,
+                        output_size=self.input_size,
+                        crop = self.crop,
+                        augment = self.augment,
+                        aug_dict=self.data_gen_args,
+                        max_crop = self.max_crop)
+            #Can likely convert this to use slicing instead
+            for aug_img in aug_imgs:
+                test_imgs[i] = aug_img
+            for aug_mask in aug_masks:
+                test_masks[i] = aug_mask
+            i += 1
 
-                if epoch == self.nepochs-1:
-                    save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
-                    return dict(zip(self.model.metrics_names,test_loss.tolist()))
+        tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
 
-            if not test and epoch == self.nepochs-1:
-                save_model_unet(self.serial_model,epoch,-1,directory=save_dir)
+        file_writer = tf.summary.create_file_writer('logs/images/')
+        def log_validation_results(epoch, logs):
+            with file_writer.as_default():
+                tf.summary.image('Validation Images', test_imgs, step=epoch)
+                tf.summary.image('Validation Masks', test_masks, step=epoch)
+                tf.summary.image('Model output', self.model.predict(test_imgs), step=epoch)
+        image_cb = LambdaCallback(on_epoch_end=log_validation_results)
 
+        self.model.fit(imgs, masks,
+            batch_size=self.batch_size,
+            epochs=self.nepochs,
+            shuffle=True,
+            validation_data=(test_imgs, test_masks),
+            callbacks=[tensorboard_cb, image_cb])
+        # for epoch in range(self.nepochs):
+        #     shuffle(self.train_paths)
+        #     for i, img_mask_path in enumerate(self.train_paths):
+        #         img, mask = read_data(img_mask_path)
+        #
+        #         if epoch >= self.augment_after:
+        #             augment = self.augment
+        #             crop = self.crop
+        #         else:
+        #             augment = False
+        #             crop = False
+        #
+        #         aug_imgs, aug_masks = generate_batch(
+        #             img,
+        #             mask,
+        #             batch_size=self.batch_size,
+        #             random_crop_size=self.crop_size,
+        #             output_size=self.input_size,
+        #             crop = self.crop,
+        #             augment = augment,
+        #             aug_dict=self.data_gen_args,
+        #             max_crop = self.max_crop)
+        #         loss = self.model.train_on_batch(aug_imgs,aug_masks)
+        #         append_to_log(
+        #             "[TRAIN] epoch: %d (%d/%d), %s: %s %s"%(epoch,i,len(self.train_paths),self.model.metrics_names,loss[0],loss[1]),
+        #             directory = save_dir,
+        #             filename = out_file
+        #             )
+        #
+        #     if test:
+        #         test_loss = []
+        #         for i, img_mask_path in enumerate(self.test_paths):
+        #             img, mask = read_data(img_mask_path)
+        #             out_imgs,out_masks = generate_batch(
+        #                 img,
+        #                 mask,
+        #                 output_size=self.input_size,
+        #                 batch_size=1,
+        #                 crop = False,
+        #                 augment = False,)
+        #
+        #             prediction = self.model.predict_on_batch(out_imgs)
+        #             if epoch % 20 == 0 or epoch == self.nepochs-1:
+        #                 save_output(out_imgs[0,...],out_masks[0,...],prediction[0,...],index=i,epoch=epoch,directory=save_dir)
+        #             test_loss.append(self.model.test_on_batch(out_imgs,out_masks))
+        #         test_loss = np.mean(np.array(test_loss),axis=0)
+        #         if test_loss[1]>best_acc:
+        #             save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
+        #         append_to_log(
+        #             "[TEST] epoch: %d, %s: %s %s"%(epoch,self.model.metrics_names,test_loss[0],test_loss[1]),
+        #             directory = save_dir,
+        #             filename = out_file
+        #             )
+        #
+        #         if epoch == self.nepochs-1:
+        #             save_model_unet(self.serial_model,epoch,test_loss[1],directory=save_dir)
+        #             return dict(zip(self.model.metrics_names,test_loss.tolist()))
+        #
+        #     if not test and epoch == self.nepochs-1:
+        #         save_model_unet(self.serial_model,epoch,-1,directory=save_dir)
