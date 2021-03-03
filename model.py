@@ -136,15 +136,13 @@ class TrainUNET:
         self.instantiate_model()
 
     def instantiate_model(self):
-        self.serial_model = unet(input_size=self.input_size+(1,))
-        if self.ngpu > 1:
-            self.model = multi_gpu_model(self.serial_model,gpus=self.ngpu)
-        else:
-            self.model = self.serial_model
+        strategy = tf.distribute.MirroredStrategy()
+        with strategy.scope():
+            self.model = unet(input_size=self.input_size+(1,))
 
-        optimizer = RMSprop
-        # optimizer = Adam
-        self.model.compile(optimizer = optimizer(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
+            optimizer = RMSprop
+            # optimizer = Adam
+            self.model.compile(optimizer = optimizer(lr = self.lr), loss = 'binary_crossentropy', metrics = ['accuracy'])
         # plot_model(self.model, to_file='model.png',show_shapes=True)
 
     def kFoldValidation(self,folds=10,random_state=9999):
