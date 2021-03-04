@@ -6,6 +6,13 @@
 #SBATCH -t 1:00:00
 #SBATCH --gres=gpu:8
 
+if [ "$1" != "" ]
+then
+        epochs=$1
+else
+        epochs=10
+fi
+
 CODENAME='unet-sem'
 DIRNAME=${SLURM_JOB_NAME}-${SLURM_JOB_ID}
 CODEDIR=${HOME}/${CODENAME}
@@ -37,7 +44,7 @@ echo "SCRATCHDIR: ${SCRATCHDIR}"
 #python main.py --augment --ngpu 4 --batch_size 8  --nepochs 20 --input_size 512 2>&1 | tee out.log
 #cp -R -p out.log output *.hdf5  ${SCRATCHDIR}
 #python main.py --ngpu 4 --batch_size 16 --nepochs 10 --input_size 512 2>&1 | tee out.log
-python main.py --lr 1e-5 --augment --ngpu 8 --batch_size 16 --nepochs 20 --input_size 512 2>&1 | tee out.log
+python main.py --lr 1e-5 --augment --ngpu 8 --batch_size 16 --nepochs $epochs --input_size 512 2>&1 | tee out.log
 cp -R -p * ${SCRATCHDIR}
 
 set +x
