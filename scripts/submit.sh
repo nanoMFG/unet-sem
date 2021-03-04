@@ -12,11 +12,11 @@ CODEDIR=${HOME}/${CODENAME}
 SUBMITDIR=`pwd`
 
 cd ${CODEDIR}
-BRANCH=`git branch | sed -e 's/^\*\ //' | sed -e 's/$//'`
+# BRANCH=`git branch | sed -e 's/^\*\ //' | sed -e 's/$//'`
 RD=`git log -n 1 --pretty=format:"%cD"`
 RDATE=`date -d "$RD" +%m-%d-%Y-%T`
 RHASH=`git log -n 1 --pretty=format:"%h" | sed -e 's/$//'`
-VERSION=${BRANCH}_${RHASH}_${RDATE}
+VERSION=${RHASH}_${RDATE}
 cd ${SUBMITDIR}
 
 RUNDIR=${CODENAME}/${VERSION}/${DIRNAME}
