@@ -179,7 +179,8 @@ class TrainUNET:
         num_imgs = len(self.train_paths) * self.batch_size
         imgs = np.zeros((num_imgs, self.input_size[0], self.input_size[1], 1))
         masks = np.zeros((num_imgs, self.input_size[0], self.input_size[1], 1))
-        i = 0
+        i_img = 0
+        i_mask = 0
         for img_path, img_mask_path in enumerate(self.train_paths):
             img, mask = read_data(img_mask_path)
             aug_imgs, aug_masks = generate_batch(
@@ -195,14 +196,16 @@ class TrainUNET:
             #Can likely convert this to use slicing instead
             for aug_img in aug_imgs:
                 imgs[i] = aug_img
+                i_img += 1
             for aug_mask in aug_masks:
                 masks[i] = aug_mask
-            i += 1
+                i_mask += 1
 
         num_test_imgs = len(self.test_paths) * self.batch_size
         test_imgs = np.zeros((num_test_imgs, self.input_size[0], self.input_size[1], 1))
         test_masks = np.zeros((num_test_imgs, self.input_size[0], self.input_size[1], 1))
-        i = 0
+        i_img = 0
+        i_mask = 0
         for img_path, img_mask_path in enumerate(self.test_paths):
             img, mask = read_data(img_mask_path)
             aug_imgs, aug_masks = generate_batch(
@@ -217,10 +220,11 @@ class TrainUNET:
                         max_crop = self.max_crop)
             #Can likely convert this to use slicing instead
             for aug_img in aug_imgs:
-                test_imgs[i] = aug_img
+                test_imgs[i_img] = aug_img
+                i_img += 1
             for aug_mask in aug_masks:
-                test_masks[i] = aug_mask
-            i += 1
+                test_masks[i_mask] = aug_mask
+                i_mask += 1
 
 
         tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
