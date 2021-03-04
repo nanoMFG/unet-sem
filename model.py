@@ -195,10 +195,10 @@ class TrainUNET:
                         max_crop = self.max_crop)
             #Can likely convert this to use slicing instead
             for aug_img in aug_imgs:
-                imgs[i] = aug_img
+                imgs[i_img] = aug_img
                 i_img += 1
             for aug_mask in aug_masks:
-                masks[i] = aug_mask
+                masks[i_mask] = aug_mask
                 i_mask += 1
 
         num_test_imgs = len(self.test_paths) * self.batch_size
