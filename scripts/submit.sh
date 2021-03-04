@@ -3,7 +3,7 @@
 #SBATCH -N 1
 #SBATCH -J unet-sem
 #SBATCH -p GPU
-#SBATCH -t 1:00:00
+#SBATCH -t 00:20:00
 #SBATCH --gres=gpu:8
 
 CODENAME='unet-sem'
