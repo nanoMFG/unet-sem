@@ -201,11 +201,13 @@ class TrainUNET:
                 masks[i_mask] = aug_mask
                 i_mask += 1
 
+        tb_images = np.zeros((len(self.test_paths), self.input_size[0], self.input_size[1], 1))
         num_test_imgs = len(self.test_paths) * self.batch_size
         test_imgs = np.zeros((num_test_imgs, self.input_size[0], self.input_size[1], 1))
         test_masks = np.zeros((num_test_imgs, self.input_size[0], self.input_size[1], 1))
         i_img = 0
         i_mask = 0
+        i_tb = 0
         for img_path, img_mask_path in enumerate(self.test_paths):
             img, mask = read_data(img_mask_path)
             aug_imgs, aug_masks = generate_batch(
@@ -218,6 +220,8 @@ class TrainUNET:
                         augment = self.augment,
                         aug_dict=self.data_gen_args,
                         max_crop = self.max_crop)
+            tb_images[i_tb] = aug_imgs[0]
+            i_tb += 1
             #Can likely convert this to use slicing instead
             for aug_img in aug_imgs:
                 test_imgs[i_img] = aug_img
@@ -232,9 +236,8 @@ class TrainUNET:
         file_writer = tf.summary.create_file_writer('logs/images/')
         def log_validation_results(epoch, logs):
             with file_writer.as_default():
-                tf.summary.image('Validation Images', test_imgs, max_outputs=20, step=epoch)
-                tf.summary.image('Validation Masks', test_masks, max_outputs=20, step=epoch)
-                tf.summary.image('Model output', self.model.predict(test_imgs), max_outputs=20, step=epoch)
+                tf.summary.image('Validation Image', tb_images, max_outputs=20, step=epoch)
+                tf.summary.image('Model output', self.model.predict(tb_images), max_outputs=20, step=epoch)
         image_cb = LambdaCallback(on_epoch_end=log_validation_results)
 
         self.model.fit(imgs, masks,
