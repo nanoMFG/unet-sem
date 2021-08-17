@@ -3,14 +3,14 @@
 #SBATCH -N 1
 #SBATCH -J unet-sem
 #SBATCH -p GPU
-#SBATCH -t 00:20:00
+#SBATCH -t 01:20:00
 #SBATCH --gres=gpu:8
 
 
 # Shared project directory for gresq team
 SHARED=/ocean/projects/asc190029p/shared
 # Input data
-DATADIR=$SHARED/GRRESQ/data
+DATADIR=$SHARED/GRRESQ/combined_data
 # Code repo
 CODENAME='unet-sem'
 #CODEDIR=${HOME}/${CODENAME}
@@ -32,7 +32,8 @@ DIRNAME=${SLURM_JOB_NAME}-${SLURM_JOB_ID}
 RUNDIR=${CODENAME}/${VERSION}/${DIRNAME}
 LOCALDIR=${LOCAL}/${RUNDIR}     # RUNDIR on node-local filesystem for bridges-2
 # Setup the save location
-SAVEDIR=${PROJECT}/${RUNDIR} # Directory to copy results to
+#SAVEDIR=${PROJECT}/${RUNDIR} # Directory to copy results to
+SAVEDIR=${SHARED}/model-runs/${RUNDIR} # Directory to copy results to
 
 set -x
 mkdir -p ${SAVEDIR}
