@@ -120,12 +120,12 @@ class TrainUNET:
                 if file.endswith('.tif'):
                     #DO NOT LEAVE THESE PRINT STATEMENTS, THEY NEED TO BE LOGGED INSTEAD
                     image = os.path.join(input_dir, file)
-                    num = int(file.split('<')[1].split('>')[0])
-                    mask = os.path.join(input_dir, 'image_mask<{}>.jpg'.format(num))
+                    num = int(file.split('.')[0].rsplit('_',1)[1])
+                    mask = os.path.join(input_dir, 'image_mask_{}.png'.format(num))
                     print('Loading image path', image, 'and mask path', mask)
                     self.image_mask_paths.append((image, mask))
         else:
-            self.image_mask_paths = [("data/image<%d>.tif"%i,"data/image_mask<%d>.jpg"%i) for i in range(1,41)]
+            self.image_mask_paths = [("data/image_%d.tif"%i,"data/image_mask_%d.png"%i) for i in range(1,41)]
 
         if self.shuffle_data:
             shuffle(self.image_mask_paths)
