@@ -46,8 +46,8 @@ for directory in input_dir_list:
     while i != 0:
         imagep = os.path.join(directory,"image<"+str(i)+">.tif")
         maskp = os.path.join(directory,"image_mask<"+str(i)+">.png")
-        imagep_new = os.path.join(args['output_dir'],"image_"+str(c)+".tif")
-        maskp_new = os.path.join(args['output_dir'],"image_mask_"+str(c)+".png")
+        imagep_new = os.path.join(args['output_dir'],"image_"+str(count)+".tif")
+        maskp_new = os.path.join(args['output_dir'],"image_mask_"+str(count)+".png")
 
         try:
             shutil.copy(imagep, imagep_new)
