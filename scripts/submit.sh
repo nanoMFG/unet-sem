@@ -3,7 +3,7 @@
 #SBATCH -N 1
 #SBATCH -J unet-sem
 #SBATCH -p GPU
-#SBATCH -t 01:20:00
+#SBATCH -t 01:00:00
 #SBATCH --gres=gpu:8
 
 
@@ -50,7 +50,7 @@ echo "SAVEDIR: ${SAVEDIR}"
 #cp -R -p out.log output *.hdf5  ${SAVEDIR}
 #python main.py --ngpu 4 --batch_size 16 --nepochs 10 --input_size 512 2>&1 | tee out.log
 python main.py --lr 1e-5 --augment --ngpu 8 --batch_size 16 \
-	--nepochs 50 --input_size 512 --input_dir $DATADIR 2>&1 | tee out.log
+	--nepochs 100 --input_size 512 --input_dir $DATADIR 2>&1 | tee out.log
 
 # Copy data back to save location
 cp -R -p * ${SAVEDIR}

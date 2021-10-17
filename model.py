@@ -237,7 +237,7 @@ class TrainUNET:
         def log_validation_results(epoch, logs):
             with file_writer.as_default():
                 tf.summary.image('Validation Image', tb_images, max_outputs=20, step=epoch)
-                tf.summary.image('Model output', self.model.predict(tb_images), max_outputs=20, step=epoch)
+        #        tf.summary.image('Model output', self.model.predict(tb_images), max_outputs=20, step=epoch)
         image_cb = LambdaCallback(on_epoch_end=log_validation_results)
 
         self.model.fit(imgs, masks,
@@ -246,6 +246,9 @@ class TrainUNET:
             shuffle=True,
             validation_data=(test_imgs, test_masks),
             callbacks=[tensorboard_cb, image_cb])
+        
+        save_model_unet(self.model, self.nepochs, 0, directory=save_dir)
+
         # for epoch in range(self.nepochs):
         #     shuffle(self.train_paths)
         #     for i, img_mask_path in enumerate(self.train_paths):

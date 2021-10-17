@@ -24,10 +24,10 @@ input_dir_list = args['input_dir_list'].split(',')
 for i in range(len(input_dir_list)):
     input_dir_list[i] = input_dir_list[i].strip()
 
-if args['output_dir'] not in os.listdir():
+if os.path.isdir(args['output_dir']):
+    shutil.rmtree(args['output_dir'])
     os.mkdir(args['output_dir'])
 else:
-    shutil.rmtree(args['output_dir'])
     os.mkdir(args['output_dir'])
 
 # for set in sets:
