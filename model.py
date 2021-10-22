@@ -247,6 +247,12 @@ class TrainUNET:
             validation_data=(test_imgs, test_masks),
             callbacks=[tensorboard_cb, image_cb])
         
+        # print('History Params: ', history.params)
+        # print('History Keys: ', history.history.keys())
+
+        # print('Final Training Loss: ', history.history['loss'][-1])
+        # print('Final Testing Loss: ', history.history['val_loss'][-1])
+
         save_model_unet(self.model, self.nepochs, 0, directory=save_dir)
 
         # for epoch in range(self.nepochs):
