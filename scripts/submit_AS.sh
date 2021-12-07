@@ -50,7 +50,7 @@ echo "SAVEDIR: ${SAVEDIR}"
 #cp -R -p out.log output *.hdf5  ${SAVEDIR}
 #python main.py --ngpu 4 --batch_size 16 --nepochs 10 --input_size 512 2>&1 | tee out.log
 python main.py --lr 1e-4 --augment --ngpu 8 --batch_size 16 \
-	--nepochs 40 --input_size 512 --input_dir $DATADIR 2>&1 | tee out.log
+	--nepochs 100 --input_size 512 --input_dir $DATADIR 2>&1 | tee out.log
 #python main.py --augment --ngpu 1 --batch_size 8 --nepochs 2 --input_size 512 --input_dir $DATADIR 2>&1 | tee out.log
 
 # Copy data back to save location
