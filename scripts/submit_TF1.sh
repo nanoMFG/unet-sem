@@ -3,7 +3,7 @@
 #SBATCH -N 1
 #SBATCH -J unet-sem
 #SBATCH -p GPU
-#SBATCH -t 03:00:00
+#SBATCH -t 02:00:00
 #SBATCH --gres=gpu:8
 
 
@@ -40,7 +40,7 @@ mkdir -p ${SAVEDIR}
 mkdir -p ${LOCALDIR}
 cp -r -p ${CODEDIR}/* ${LOCALDIR}
 
-module load AI/anaconda3-tf2.2020.11
+module load AI/anaconda3-tf1.2020.11
 source activate $AI_ENV
 cd ${LOCALDIR}
 echo "SAVEDIR: ${SAVEDIR}"
@@ -49,8 +49,8 @@ echo "SAVEDIR: ${SAVEDIR}"
 #python main.py --augment --ngpu 4 --batch_size 8  --nepochs 20 --input_size 512 2>&1 | tee out.log
 #cp -R -p out.log output *.hdf5  ${SAVEDIR}
 #python main.py --ngpu 4 --batch_size 16 --nepochs 10 --input_size 512 2>&1 | tee out.log
-python main.py --lr 1e-4 --augment --ngpu 8 --batch_size 8 \
-	--nepochs 300 --input_size 512 --input_dir $DATADIR 2>&1 | tee out.log
+python main.py --lr 1e-4 --augment --ngpu 8 --batch_size 16 \
+	--nepochs 100 --input_size 512 --input_dir $DATADIR 2>&1 | tee out.log
 #python main.py --augment --ngpu 1 --batch_size 8 --nepochs 2 --input_size 512 --input_dir $DATADIR 2>&1 | tee out.log
 
 # Copy data back to save location

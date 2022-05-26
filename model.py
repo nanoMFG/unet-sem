@@ -233,10 +233,11 @@ class TrainUNET:
 
         tensorboard_cb = TensorBoard('logs/fit/', histogram_freq=1)
 
-        file_writer = tf.summary.create_file_writer('logs/images/')
+        file_writer = tf.summary.FileWriter('logs/images/')
         def log_validation_results(epoch, logs):
-            with file_writer.as_default():
-                tf.summary.image('Validation Image', tb_images, max_outputs=20, step=epoch)
+            print('epoch end')
+        #    with file_writer.as_default():
+        #        tf.summary.image('Validation Image', tb_images, max_outputs=20, step=epoch)
         #        tf.summary.image('Model output', self.model.predict(tb_images), max_outputs=20, step=epoch)
         image_cb = LambdaCallback(on_epoch_end=log_validation_results)
 
