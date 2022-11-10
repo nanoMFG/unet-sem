@@ -36,3 +36,11 @@ Based on: https://github.com/zhixuhao/unet
       --input_dir INPUT_DIR
                             Directory to pull images from
 
+# Image Data
+
+Images used to train the neural network are available in the `data` directory:
+- All directories that end in `_Bad` contain low fidelity masks and their corresponding images
+- All directories that end in `_Good` contain high fidelity masks and their corresponding images
+- The `Old_data` directory also contains high fidelity masks and their corresponding images
+
+Use the `fileproc.py` script to combine all the images into a single directory and rename them correctly
