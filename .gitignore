@@ -77,6 +77,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+.DS_Store
 
 # IPython
 profile_default/
@@ -139,3 +140,12 @@ cython_debug/
 
 #job logs
 scripts/slurm-*
+logs/*
+output/*
+
+# deepImageJ
+U-Net_Detection.ipynb
+deepImageJ/*
+model-old.zip
+mymodel.zip
+*.hdf5
