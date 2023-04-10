@@ -44,3 +44,13 @@ Images used to train the neural network are available in the `data` directory:
 - The `Old_data` directory also contains high fidelity masks and their corresponding images
 
 Use the `fileproc.py` script to combine all the images into a single directory and rename them correctly
+
+# Domain Size Analysis
+
+`domain_size_analysis.ipynb` is the jupyter notebook that contains the code to our method of domain size analysis. It has the following sections:
+- Import packages: imports all relevant packages
+- Define all analysis functions: All the required classes and functions for domain size analysis are defined here
+- Analysis of randomly generated data: A data generator is created to test the technqiue on artificially generated data
+- Follow process for one simulated image: Run through the analysis process step by step for only one image (might be broken)
+- Analysis of true data: Analysis of true data. User must select a directory that contains all the segmented masks
+- Experimental section: Code blocks used to trace out code in case of problems
